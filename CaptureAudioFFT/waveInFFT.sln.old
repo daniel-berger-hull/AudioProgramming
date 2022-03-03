@@ -1,0 +1,21 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "waveInFFT", "waveInFFT.vcproj", "{2F5E28C4-A0E0-4D79-9F5D-76867235189A}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{2F5E28C4-A0E0-4D79-9F5D-76867235189A}.Debug.ActiveCfg = Debug|Win32
+		{2F5E28C4-A0E0-4D79-9F5D-76867235189A}.Debug.Build.0 = Debug|Win32
+		{2F5E28C4-A0E0-4D79-9F5D-76867235189A}.Release.ActiveCfg = Release|Win32
+		{2F5E28C4-A0E0-4D79-9F5D-76867235189A}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal
