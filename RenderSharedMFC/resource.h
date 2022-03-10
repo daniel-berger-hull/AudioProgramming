@@ -17,6 +17,7 @@
 #define IDC_WHITE_NOISE_RADIO           1005
 #define IDC_COMPLEX_SIGNAL_RADIO        1006
 #define IDC_WAVE_TYPE_STATIC2           1007
+#define IDC_GROUP_FREQUENCY             1007
 #define IDC_SIGNAL_FREQUENCY_SLIDER     1008
 #define IDC_SIGNAL_FREQUENCY_LABEL      1009
 #define IDC_BUTTON_TEST_IMG             1010
@@ -36,6 +37,8 @@
 #define IDC_THIRD_HARMONIC_LEVEL        1024
 #define IDC_FOURTH_HARMONIC_LEVEL       1025
 #define IDC_HARMONIC_LEVEL_GROUP        1026
+#define IDC_GROUP_VOLUME                1027
+#define IDC_FREQUENCY_HZ_LABEL          1028
 
 // Next default values for new objects
 // 
@@ -43,7 +46,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        136
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1027
+#define _APS_NEXT_CONTROL_VALUE         1029
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

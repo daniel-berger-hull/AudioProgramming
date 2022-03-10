@@ -179,6 +179,17 @@ BOOL CMainDlg::OnInitDialog()
 	m_harmonicLevels[2] = 15;
 	m_harmonicLevels[3] = 5;
 	
+
+	m_firstHarmonicLevel.Format(_T("%d"), m_harmonicLevels[0]);
+	m_secondHarmonicLevel.Format(_T("%d"), m_harmonicLevels[1]);
+	m_thirdHarmonicLevel.Format(_T("%d"), m_harmonicLevels[2]);
+	m_fourthHarmonicLevel.Format(_T("%d"), m_harmonicLevels[3]);
+
+
+
+
+	UpdateData(FALSE);
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -188,6 +199,11 @@ BOOL CMainDlg::OnInitDialog()
 HBRUSH CMainDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
 	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
+
+
+
+	
+	
 
 
 
@@ -204,9 +220,8 @@ HBRUSH CMainDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 
 			return m_backgroundBrush;
 		}
-
+		
 		if (pWnd->GetDlgCtrlID() == IDC_SIGNAL_FREQUENCY_SLIDER ||
-			pWnd->GetDlgCtrlID() == IDC_SIGNAL_FREQUENCY_LABEL || 
 			pWnd->GetDlgCtrlID() == IDC_MASTER_VOLUME_SLIDER || 
 			pWnd->GetDlgCtrlID() == IDC_BASE_HARMONIC_LEVEL_SLIDER ||
 			pWnd->GetDlgCtrlID() == IDC_SECOND_HARMONIC_LEVEL_SLIDER ||
@@ -214,8 +229,38 @@ HBRUSH CMainDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 			pWnd->GetDlgCtrlID() == IDC_FOURTH_HARMONIC_LEVEL_SLIDER )
 		{
 			//pDC->SetTextColor(RGB(255, 255, 255));
+
+			pDC->SetBkMode(TRANSPARENT);
 			return m_backgroundBrush;
 		}
+
+		if (pWnd->GetDlgCtrlID() == IDC_SIGNAL_FREQUENCY_LABEL ||
+			pWnd->GetDlgCtrlID() == IDC_FREQUENCY_HZ_LABEL ||
+			pWnd->GetDlgCtrlID() == IDC_MASTER_VOLUME_LABEL ||
+			pWnd->GetDlgCtrlID() == IDC_BASE_HARMONIC_LEVEL ||
+			pWnd->GetDlgCtrlID() == IDC_SECOND_HARMONIC_LEVEL ||
+			pWnd->GetDlgCtrlID() == IDC_THIRD_HARMONIC_LEVEL ||
+			pWnd->GetDlgCtrlID() == IDC_FOURTH_HARMONIC_LEVEL )
+		{
+			pDC->SetTextColor(RGB(255, 255, 255));
+			pDC->SetBkMode(TRANSPARENT);
+			return m_backgroundBrush; 
+		}
+
+
+
+		
+
+		if (pWnd->GetDlgCtrlID() == IDC_GROUP_VOLUME ||
+			pWnd->GetDlgCtrlID() == IDC_GROUP_FREQUENCY ||
+			pWnd->GetDlgCtrlID() == IDC_WAVE_TYPE_STATIC ||
+			pWnd->GetDlgCtrlID() == IDC_HARMONIC_LEVEL_GROUP )
+		{
+			pDC->SetTextColor(RGB(255,255,255));
+			pDC->SetBkMode(TRANSPARENT);
+			return m_backgroundBrush;
+		}
+
 
 	}
 	

@@ -25,8 +25,8 @@
 #define MINIMAL_VOLUME                      0
 #define MAXMIMAL_VOLUME                    10
 
-#define HARMONIC_MIN_LEVEL				  	  0
-#define HARMONIC_MAX_LEVEL					100
+#define HARMONIC_MIN_LEVEL				    0
+#define HARMONIC_MAX_LEVEL				  100
 
 
 #define  SINE_SIGNAL                         1
@@ -174,7 +174,7 @@ protected:
 
 
 	int  MasterVolume = 100;
-	int  TargetFrequency = 440;
+	int  TargetFrequency = 220;
 	int  TargetLatency = 50;
 	int  TargetDurationInSec = 2;
 	bool ShowHelp;
