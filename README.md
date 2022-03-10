@@ -18,6 +18,13 @@ This is basically an MS MFC version of the RenderSharedWin32GDI. It contains als
 a square wave signal, and an experiment of a multiple frequency (sine wave) signal, for which, there is 
 slider controls to modify the amplitude of the first 4 harmonic of the waves that are building the signal.
 
+
+WavPlayerRenderShared
+---------------------
+
+A project to render the content of a wav file, using the WASAPI and MFC skeleton used in the RenderSharedMFC.
+
+
 CaptureAudioFFT
 ---------------
 
