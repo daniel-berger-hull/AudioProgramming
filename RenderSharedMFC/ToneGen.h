@@ -26,9 +26,9 @@
 #include <time.h>       /* time */
 
 
+#include "PinkNumber.h"
+
 template<typename T> T Convert(double Value);
-
-
 
 
 
@@ -50,6 +50,7 @@ struct  GenParams
     float      masterVolume;
     
     WaveParams* waveParams;
+    bool        addNoiseInd;
 };
 
 
@@ -84,13 +85,26 @@ void GenerateSineSamples(GenParams* params)
     T *dataBuffer = reinterpret_cast<T *>(params->Buffer);
     double theta = (params->InitialTheta != NULL ? *(params->InitialTheta) : 0);
     float outputValue = 0.0f;
-    float amplitude = (params->masterVolume / 100.0f);
 
-   
+    float amplitude;
+    
+    
+    if (params->addNoiseInd)
+       amplitude = 0.9f * (params->masterVolume / 100.0f);
+    else 
+        amplitude = (params->masterVolume / 100.0f);
+
     
     for (size_t i = 0 ; i < params->BufferLength / sizeof(T) ; i += params->ChannelCount)
     {        
         outputValue = amplitude * sin(theta);
+
+        if (params->addNoiseInd)
+            outputValue += 0.1 * (rand() / (double)RAND_MAX);
+
+
+
+
         for(size_t j = 0 ;j < params->ChannelCount; j++)
         {
             dataBuffer[i + j] = Convert<T>(outputValue);
@@ -141,8 +155,13 @@ void GenerateTriangleSamples(GenParams* params)
     float step2 = (3.0f * M_PI) / 2.0f;
     float TWO_PI = 2.0f * M_PI;
   
-    float outputValue = 0.0f;
-    float amplitude = (params->masterVolume / 100.0f);
+    float outputValue = 0.0f;    
+    float amplitude;
+
+    if (params->addNoiseInd)
+        amplitude = 0.9f * (params->masterVolume / 100.0f);
+    else
+        amplitude = (params->masterVolume / 100.0f);
 
 
     for (size_t i = 0; i < params->BufferLength / sizeof(T); i += params->ChannelCount)
@@ -154,6 +173,8 @@ void GenerateTriangleSamples(GenParams* params)
 
         currentValue += currentSlope;
         outputValue = amplitude * currentValue;
+        if (params->addNoiseInd)
+            outputValue += 0.1 * (rand() / (double)RAND_MAX);
 
         for (size_t j = 0; j < params->ChannelCount; j++)
         {
@@ -257,14 +278,23 @@ void GenerateSawSamples(GenParams* params)
     float slope = (1.0 / samplesBySignalCycle) * 0.5;
     float currentValue = (params->carryOverValue != NULL ? *(params->carryOverValue) : 0);
     float outputValue = 0.0f;
-    float amplitude = (params->masterVolume / 100.0f);
+   // float amplitude = (params->masterVolume / 100.0f);
+    float amplitude;
+
+    if (params->addNoiseInd)
+        amplitude = 0.9f * (params->masterVolume / 100.0f);
+    else
+        amplitude = (params->masterVolume / 100.0f);
 
     for (size_t i = 0; i < params->BufferLength / sizeof(T); i += params->ChannelCount)
     {       
         currentValue += slope;
         if (currentValue >= 1.0)   currentValue = -1.0;
 
-        outputValue = amplitude * currentValue;   
+        outputValue = amplitude * currentValue;  
+        if (params->addNoiseInd)
+            outputValue += 0.1 * (rand() / (double)RAND_MAX);
+
         for (size_t j = 0; j < params->ChannelCount; j++)
         {
             dataBuffer[i + j] = Convert<T>(outputValue);            
@@ -312,7 +342,14 @@ void GenerateSquareSamples(GenParams* params)
 
     float TWO_PI = 2.0f * M_PI;
     float outputValue = 0.0f;
-    float amplitude = (params->masterVolume / 100.0f);
+    //float amplitude = (params->masterVolume / 100.0f);
+    float amplitude;
+
+    if (params->addNoiseInd)
+        amplitude = 0.9f * (params->masterVolume / 100.0f);
+    else
+        amplitude = (params->masterVolume / 100.0f);
+
 
 
     for (size_t i = 0; i < params->BufferLength / sizeof(T); i += params->ChannelCount)
@@ -321,6 +358,8 @@ void GenerateSquareSamples(GenParams* params)
         else  if (theta < TWO_PI)   currentValue = -0.9f;;
 
         outputValue = amplitude * currentValue;
+        if (params->addNoiseInd)
+            outputValue += 0.1 * (rand() / (double)RAND_MAX);
 
 
         for (size_t j = 0; j < params->ChannelCount; j++)
@@ -367,9 +406,7 @@ void GenerateWhiteNoiseSamples(GenParams* params)
     //float amplitude = (MasterVolume / 100.0f);
     float amplitude = (params->masterVolume / 100.0f);
 
-    //float amplitude = 1.0f;
-
-
+  
     for (size_t i = 0; i < params->BufferLength / sizeof(T); i += params->ChannelCount)
     {
         outputValue = amplitude * (rand() / (double)RAND_MAX);
@@ -379,6 +416,40 @@ void GenerateWhiteNoiseSamples(GenParams* params)
         }
     }
 }
+
+
+//
+//  Generate samples which represent a white noise that fits into the specified buffer.  
+//
+//  T:  Type of data holding the sample (short, int, byte, float)
+//  Buffer - Buffer to hold the samples
+//  BufferLength - Length of the buffer.
+//  ChannelCount - Number of channels per audio frame.
+//  SamplesPerSecond - Samples/Second for the output data.
+//  InitialTheta - Initial theta value - start at 0, modified in this function.
+//
+template <typename T>
+void GeneratePinkNoiseSamples(GenParams* params)
+{
+    T* dataBuffer = reinterpret_cast<T*>(params->Buffer);
+    float outputValue = 0.0f;
+    //float amplitude = (MasterVolume / 100.0f);
+    float amplitude = (params->masterVolume / 100.0f);
+
+
+    PinkNumber pn(RAND_MAX);
+  
+    for (size_t i = 0; i < params->BufferLength / sizeof(T); i += params->ChannelCount)
+    {
+        outputValue = amplitude * ( (double)pn.GetNextValue() / (double)RAND_MAX );
+
+        for (size_t j = 0; j < params->ChannelCount; j++)
+        {
+            dataBuffer[i + j] = Convert<T>(outputValue);
+        }
+    }
+}
+
 
 
 

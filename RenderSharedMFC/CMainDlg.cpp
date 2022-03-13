@@ -9,6 +9,8 @@
 #include "afxdialogex.h"
 #include "ToneGen.h"
 
+#include "PinkNumber.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -21,6 +23,9 @@ typedef struct PlayThreadParams {
 	int frequency;
 	int durationInSec;
 } PLAY_THREAD_PARAMS, * PPLAY_THREAD_PARAMS;
+
+
+
 
 
 
@@ -63,6 +68,11 @@ void CMainDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_THIRD_HARMONIC_LEVEL, m_thirdHarmonicLevel);
 	DDX_Text(pDX, IDC_FOURTH_HARMONIC_LEVEL, m_fourthHarmonicLevel);
 
+	DDX_Control(pDX, IDC_ADD_NOISE_CHECK, m_addNoiseCheckBox);
+	DDX_Control(pDX, IDC_SINE_WAVE_RADIO, m_sineWaveType);
+	DDX_Control(pDX, IDC_WHITE_NOISE_TYPE_RADIO, m_whiteNoiseType);
+	DDX_Control(pDX, IDC_PINK_NOISE_TYPE_RADIO, m_pinkNoiseType);
+	DDX_Control(pDX, IDC_BROWN_NOISE_TYPE_RADIO, m_brownNoiseType);
 }
 
 BEGIN_MESSAGE_MAP(CMainDlg, CDialogEx)
@@ -81,8 +91,13 @@ BEGIN_MESSAGE_MAP(CMainDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_SAW_WAVE_RADIO, &CMainDlg::OnBnClickedSawWaveRadio)
 	ON_BN_CLICKED(IDC_TRIANGLE_WAVE_RADIO, &CMainDlg::OnBnClickedTriangleWaveRadio)
 	ON_BN_CLICKED(IDC_SQUARE_WAVE_RADIO, &CMainDlg::OnBnClickedSquareWaveRadio)
-	ON_BN_CLICKED(IDC_WHITE_NOISE_RADIO, &CMainDlg::OnBnClickedWhiteNoiseRadio)
+	ON_BN_CLICKED(IDC_NOISE_WAVE_RADIO, &CMainDlg::OnBnClickedNoiseWaveRadio)
 	ON_BN_CLICKED(IDC_COMPLEX_SIGNAL_RADIO, &CMainDlg::OnBnClickedComplexSignalRadio)
+	ON_BN_CLICKED(IDC_ADD_NOISE_CHECK, &CMainDlg::OnBnClickedAddNoiseCheck)
+	ON_BN_CLICKED(IDC_WHITE_NOISE_TYPE_RADIO, &CMainDlg::OnBnClickedWhiteNoiseTypeRadio)
+	ON_BN_CLICKED(IDC_PINK_NOISE_TYPE_RADIO, &CMainDlg::OnBnClickedPinkNoiseTypeRadio)
+	ON_BN_CLICKED(IDC_BROWN_NOISE_TYPE_RADIO, &CMainDlg::OnBnClickedBrownNoiseTypeRadio)
+	ON_BN_CLICKED(IDC_PINK_BUTTON, &CMainDlg::OnBnClickedPinkButton)
 END_MESSAGE_MAP()
 
 
@@ -141,7 +156,7 @@ void CMainDlg::decorateRadioButtonSection()
 	CWnd* sawRadioButton = GetDlgItem(IDC_SAW_WAVE_RADIO);
 	CWnd* triangleRadioButton = GetDlgItem(IDC_TRIANGLE_WAVE_RADIO);
 	CWnd* squareRadioButton = GetDlgItem(IDC_SQUARE_WAVE_RADIO);
-	CWnd* noiseRadioButton = GetDlgItem(IDC_WHITE_NOISE_RADIO);
+	CWnd* noiseRadioButton = GetDlgItem(IDC_NOISE_WAVE_RADIO);
 
 	sineRadioButton->SendMessage(BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)sineBitmap);
 	sawRadioButton->SendMessage(BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)sawBitmap);
@@ -213,7 +228,7 @@ HBRUSH CMainDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 			pWnd->GetDlgCtrlID() == IDC_SAW_WAVE_RADIO ||
 			pWnd->GetDlgCtrlID() == IDC_TRIANGLE_WAVE_RADIO ||
 			pWnd->GetDlgCtrlID() == IDC_SQUARE_WAVE_RADIO ||
-			pWnd->GetDlgCtrlID() == IDC_WHITE_NOISE_RADIO || 
+			pWnd->GetDlgCtrlID() == IDC_NOISE_WAVE_RADIO || 
 			pWnd->GetDlgCtrlID() == IDC_COMPLEX_SIGNAL_RADIO)
 		{
 			pDC->SetTextColor(RGB(255, 255, 255));
@@ -261,6 +276,25 @@ HBRUSH CMainDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 			return m_backgroundBrush;
 		}
 
+
+		if (pWnd->GetDlgCtrlID() == IDC_NOISE_TYPE_GROUP ||
+			pWnd->GetDlgCtrlID() == IDC_WHITE_NOISE_TYPE_RADIO ||
+			pWnd->GetDlgCtrlID() == IDC_PINK_NOISE_TYPE_RADIO ||
+			pWnd->GetDlgCtrlID() == IDC_BROWN_NOISE_TYPE_RADIO)
+		{
+			pDC->SetTextColor(RGB(255, 255, 255));
+			pDC->SetBkMode(TRANSPARENT);
+			return m_backgroundBrush;
+		}
+
+		if (pWnd->GetDlgCtrlID() == IDC_ADD_NOISE_CHECK)
+		{
+			pDC->SetTextColor(RGB(255, 255, 255));
+			pDC->SetBkMode(TRANSPARENT);
+			return m_backgroundBrush;
+		}
+
+		
 
 	}
 	
@@ -406,12 +440,15 @@ void CMainDlg::OnBnClickedSineWaveRadio()
 {
 	m_signalType = SINE_SIGNAL;
 	EnableHarmonicLevels(FALSE);
+	EnableNoiseTypeSection(FALSE);
 }
 
 
 void CMainDlg::OnBnClickedSawWaveRadio()
 {
 	m_signalType = SAW_SIGNAL;
+	EnableHarmonicLevels(FALSE);
+	EnableNoiseTypeSection(FALSE);
 }
 
 
@@ -419,6 +456,7 @@ void CMainDlg::OnBnClickedTriangleWaveRadio()
 {
 	m_signalType = TRIANGLE_SIGNAL;
 	EnableHarmonicLevels(FALSE);
+	EnableNoiseTypeSection(FALSE);
 }
 
 
@@ -426,12 +464,15 @@ void CMainDlg::OnBnClickedSquareWaveRadio()
 {
 	m_signalType = SQUARE_SIGNAL;
 	EnableHarmonicLevels(FALSE);
+	EnableNoiseTypeSection(FALSE);
 }
 
 
-void CMainDlg::OnBnClickedWhiteNoiseRadio()
+void CMainDlg::OnBnClickedNoiseWaveRadio()
 {
-	m_signalType = WHITE_NOISE_SIGNAL;
+	m_signalType = NOISE_SIGNAL;
+
+	EnableNoiseTypeSection(TRUE);
 	EnableHarmonicLevels(FALSE);
 }
 
@@ -439,11 +480,34 @@ void CMainDlg::OnBnClickedComplexSignalRadio()
 {
 	m_signalType = COMPLEX_SIGNAL;
 	EnableHarmonicLevels(TRUE);
-	//m_harmonicLevelsGroup.EnableWindow(TRUE);
+	EnableNoiseTypeSection(FALSE);
+}
 
-	
 
 
+
+void CMainDlg::OnBnClickedAddNoiseCheck()
+{
+	if (addNoiseIndicator)  addNoiseIndicator = false;
+	else addNoiseIndicator = true;
+}
+
+
+void CMainDlg::OnBnClickedWhiteNoiseTypeRadio()
+{
+	m_noiseType = WHITE_NOISE_SIGNAL;
+}
+
+
+void CMainDlg::OnBnClickedPinkNoiseTypeRadio()
+{
+	m_noiseType = PINK_NOISE_SIGNAL;
+}
+
+
+void CMainDlg::OnBnClickedBrownNoiseTypeRadio()
+{
+	m_noiseType = BROWN_NOISE_SIGNAL;
 }
 
 void CMainDlg::EnableHarmonicLevels(BOOL bEnable)
@@ -452,8 +516,17 @@ void CMainDlg::EnableHarmonicLevels(BOOL bEnable)
 	m_secondHarmonicLevelSlider.EnableWindow(bEnable);
 	m_thirdHarmonicLevelSlider.EnableWindow(bEnable);
 	m_fourthHarmonicLevelSlider.EnableWindow(bEnable);
-
 }
+
+void CMainDlg::EnableNoiseTypeSection(BOOL bEnable)
+{
+	m_whiteNoiseType.EnableWindow(bEnable);
+	m_pinkNoiseType.EnableWindow(bEnable);
+	m_brownNoiseType.EnableWindow(bEnable);
+}
+
+
+
 
 void CMainDlg::updateSliders()
 {
@@ -813,7 +886,8 @@ int CMainDlg::generateSignal(int signalFreq, int channelCount,
 	CWASAPIRenderer::RenderSampleType SampleType,
 	int samplesPerSecond,
 	int frameSize,
-	int bufferSizeInBytes, int totNumberOfBuffers)
+	int bufferSizeInBytes, int totNumberOfBuffers,
+	bool addNoiseIndicator)
 {
 	RenderBuffer** currentBufferTail = &renderQueue;
 
@@ -832,7 +906,7 @@ int CMainDlg::generateSignal(int signalFreq, int channelCount,
 	genParams.carryOverValue = &carryOver;
 	genParams.waveParams = &currentWaveParams;
 	
-
+	genParams.addNoiseInd = addNoiseIndicator;
 	TRACE("Will generate the data of a signal of freq %dl\n", signalFreq);
 
 	size_t i;
@@ -846,7 +920,6 @@ int CMainDlg::generateSignal(int signalFreq, int channelCount,
 			return -1;
 		}
 		renderBuffer->_BufferLength = bufferSizeInBytes;
-		//renderBuffer->_Buffer = new (std::nothrow) BYTE[bufferSizeInBytes];
 		renderBuffer->_Buffer = new BYTE[bufferSizeInBytes];
 
 		if (renderBuffer->_Buffer == NULL)
@@ -871,8 +944,24 @@ int CMainDlg::generateSignal(int signalFreq, int channelCount,
 				GenerateSawSamples<float>(&genParams);
 			else if (m_signalType == SQUARE_SIGNAL)
 				GenerateSquareSamples<float>(&genParams);
-			else if (m_signalType == WHITE_NOISE_SIGNAL)
-				GenerateWhiteNoiseSamples<float>(&genParams);
+			else if (m_signalType == NOISE_SIGNAL)
+
+				if (m_noiseType == WHITE_NOISE_SIGNAL)
+				{
+					GenerateWhiteNoiseSamples<float>(&genParams);
+				}
+				else if (m_noiseType == PINK_NOISE_SIGNAL)
+				{
+					// Modify this when a Brown noise method exists
+					//GenerateWhiteNoiseSamples<float>(&genParams);
+					GeneratePinkNoiseSamples<float>(&genParams);
+				}
+				else if (m_noiseType == BROWN_NOISE_SIGNAL)
+				{
+					// Modify this when a Brown noise method exists
+					GenerateWhiteNoiseSamples<float>(&genParams);
+				}
+
 			else if (m_signalType == COMPLEX_SIGNAL)
 				GenerateMultiSineSamples<float>(&genParams);
 			
@@ -892,8 +981,28 @@ int CMainDlg::generateSignal(int signalFreq, int channelCount,
 				GenerateSawSamples<short>(&genParams);
 			else if (m_signalType == SQUARE_SIGNAL)
 				GenerateSquareSamples<short>(&genParams);
-			else if (m_signalType == WHITE_NOISE_SIGNAL)
-				GenerateWhiteNoiseSamples<short>(&genParams);
+			else if (m_signalType == NOISE_SIGNAL)
+			{
+				if (m_noiseType == WHITE_NOISE_SIGNAL)
+				{
+					GenerateWhiteNoiseSamples<short>(&genParams);
+				}
+				else if (m_noiseType == PINK_NOISE_SIGNAL)
+				{
+					// Modify this when a Brown noise method exists
+					//GenerateWhiteNoiseSamples<float>(&genParams);
+					GeneratePinkNoiseSamples<short>(&genParams);
+				}
+				else if (m_noiseType == BROWN_NOISE_SIGNAL)
+				{
+					// Modify this when a Brown noise method exists
+					GenerateWhiteNoiseSamples<float>(&genParams);
+				}
+
+
+
+			}
+				
 			else if (m_signalType == COMPLEX_SIGNAL)
 				GenerateMultiSineSamples<short>(&genParams);
 
@@ -969,7 +1078,11 @@ DWORD WINAPI CMainDlg::PlayToneThreadProc(LPVOID lpParam)
 			renderer->SamplesPerSecond(),
 			renderer->FrameSize(),
 			renderBufferSizeInBytes,
-			renderBufferCount);
+			renderBufferCount, addNoiseIndicator);
+
+		
+
+
 		TRACE("Signal generated and will start the CWASAPIRenderer thread.\n");
 
 		//  The renderer takes ownership of the render queue - it will free the items in the queue when it renders them.
@@ -1027,3 +1140,16 @@ void CMainDlg::updateHarmonicLevels(int harmonicIndex, int value)
 
 
 
+
+
+
+
+void CMainDlg::OnBnClickedPinkButton()
+{
+	PinkNumber pn(10000);
+
+	for (int i = 0; i < 100; i++)
+	{
+		TRACE("%d : %d\n", i, pn.GetNextValue());
+	}
+}

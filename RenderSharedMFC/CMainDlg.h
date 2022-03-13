@@ -34,11 +34,13 @@
 #define  TRIANGLE_SIGNAL                     3
 #define  SAW_SIGNAL                          4
 #define  SQUARE_SIGNAL                       5
-#define  WHITE_NOISE_SIGNAL                  6
+#define  NOISE_SIGNAL						 6
 #define  COMPLEX_SIGNAL						 7
 
 
-
+#define  WHITE_NOISE_SIGNAL					  10
+#define  PINK_NOISE_SIGNAL					  11
+#define  BROWN_NOISE_SIGNAL                   12
 
 ////////////////////////////////////////////////////////////////////////////  
 // Those declaration may be transfered to a WASAPI sound class
@@ -98,6 +100,12 @@ protected:
 	CButton m_playButton;
 	CButton m_stopButton;
 
+	CButton m_addNoiseCheckBox;
+	CButton m_sineWaveType;
+	CButton m_whiteNoiseType;
+	CButton m_pinkNoiseType;
+	CButton m_brownNoiseType;
+
 	CSliderCtrl m_frequencySignalSlider;
 	CSliderCtrl m_masterVolumeSlider;
 	CSliderCtrl m_firstHarmonicLevelSlider;
@@ -118,6 +126,9 @@ protected:
 	CString m_fourthHarmonicLevel;
 
 	int m_signalType;
+	int m_noiseType;
+
+	bool addNoiseIndicator = false;
 
 	int m_harmonicLevels[4];
 
@@ -136,6 +147,8 @@ protected:
 	void updateSliders();
 
 	void EnableHarmonicLevels(BOOL bEnable);
+	void EnableNoiseTypeSection(BOOL bEnable);
+
 	void updateHarmonicLevels(int harmonicIndex, int value);
 
 	DECLARE_MESSAGE_MAP()
@@ -153,7 +166,7 @@ protected:
 						CWASAPIRenderer::RenderSampleType SampleType,
 						int samplesPerSecond,
 						int frameSize,
-						int bufferSizeInBytes, int totNumberOfBuffers);
+						int bufferSizeInBytes, int totNumberOfBuffers,bool addNoiseIndicator);
 	bool playTone(int freq, int durationInSec);
 	DWORD WINAPI PlayToneThreadProc(LPVOID lpParam);
 
@@ -201,10 +214,15 @@ public:
 	afx_msg void OnBnClickedSawWaveRadio();
 	afx_msg void OnBnClickedTriangleWaveRadio();
 	afx_msg void OnBnClickedSquareWaveRadio();
-	afx_msg void OnBnClickedWhiteNoiseRadio();
+	afx_msg void OnBnClickedNoiseWaveRadio();
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnDestroy();
-	afx_msg void OnBnClickedComplexSignalRadio();
+	afx_msg void OnBnClickedComplexSignalRadio();	
+	afx_msg void OnBnClickedAddNoiseCheck();
 
-	
+	afx_msg void OnBnClickedWhiteNoiseTypeRadio();
+	afx_msg void OnBnClickedPinkNoiseTypeRadio();
+	afx_msg void OnBnClickedBrownNoiseTypeRadio();
+	afx_msg void OnBnDropDownPinkButton(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnBnClickedPinkButton();
 };
