@@ -16,6 +16,8 @@
 #include <strsafe.h>
 
 
+#include "WavLoader.h"
+
 
 ////////////////////////////////////////////////////////////////////////////  
 
@@ -29,45 +31,35 @@
 #define HARMONIC_MAX_LEVEL				  100
 
 
-#define  SINE_SIGNAL                         1
-#define  COMPLEX_SINE_SIGNAL                 2
-#define  TRIANGLE_SIGNAL                     3
-#define  SAW_SIGNAL                          4
-#define  SQUARE_SIGNAL                       5
-#define  WHITE_NOISE_SIGNAL                  6
-#define  COMPLEX_SIGNAL						 7
 
 
+#define  TEST_WAVE_FILENAME   "D:/data/workspace/C++/DigitalSignalProcessing/FFT/FreeSmallFFT/Resources/WAV/TestSound.wav"
 
 
 ////////////////////////////////////////////////////////////////////////////  
 // Those declaration may be transfered to a WASAPI sound class
 ////////////////////////////////////////////////////////////////////////////  
 
-//typedef struct PlayThreadParams {
-//	int frequency;
-//	int durationInSec;
-//} PLAY_THREAD_PARAMS, * PPLAY_THREAD_PARAMS;
+
+
+
+//class CThreadParamObject : public CObject
+//{
 //
-//PPLAY_THREAD_PARAMS params = NULL;
-
-
-class CThreadParamObject : public CObject
-{
-
-
-	public:
-		CThreadParamObject() : frequency(0), durationInSec(0)			{ }
-		CThreadParamObject(int f, int d): frequency(f),durationInSec(d)	{ }
-
-		int getFrequency()       { return frequency; }
-		int getDurationInSec()   { return durationInSec; }
-
-	private:
-	int frequency;
-	int durationInSec;
-
-};
+//
+//	public:
+//		CThreadParamObject() : frequency(0), durationInSec(0)			{ }
+//		CThreadParamObject(int f, int d): frequency(f),durationInSec(d)	{ }
+//
+//		int getFrequency()       { return frequency; }
+//		int getDurationInSec()   { return durationInSec; }
+//
+//	private:
+//		
+//		int frequency;
+//		int durationInSec;
+//
+//};
 
 
 
@@ -97,29 +89,19 @@ protected:
 
 	CButton m_playButton;
 	CButton m_stopButton;
+	CButton m_loadWavFileButton;
+	CButton m_clearWavFileButton;
+	
+	CEdit m_wavFileNameEdit;
 
-	CSliderCtrl m_frequencySignalSlider;
 	CSliderCtrl m_masterVolumeSlider;
-	CSliderCtrl m_firstHarmonicLevelSlider;
-	CSliderCtrl m_secondHarmonicLevelSlider;
-	CSliderCtrl m_thirdHarmonicLevelSlider;
-	CSliderCtrl m_fourthHarmonicLevelSlider;
 
-
-	CStatic m_frequencyLabel;
-
-	CStatic m_harmonicLevelsGroup;
-	CString m_frequencyValue;
 	CString m_masterVolumeValue;
 
-	CString m_firstHarmonicLevel;
-	CString m_secondHarmonicLevel;
-	CString m_thirdHarmonicLevel;
-	CString m_fourthHarmonicLevel;
+	CString m_wavFileNameValue;
+
 
 	int m_signalType;
-
-	int m_harmonicLevels[4];
 
 	// Generated message map functions
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
@@ -131,12 +113,13 @@ protected:
 
 	static UINT run(LPVOID p);
 
-	void decorateRadioButtonSection();
-	void setupSliders();
-	void updateSliders();
 
-	void EnableHarmonicLevels(BOOL bEnable);
-	void updateHarmonicLevels(int harmonicIndex, int value);
+	static UINT runFileLoader(LPVOID p);
+	void runFileLoaderThread();	// This is the support method for the run method
+
+
+	void setupSliders();
+
 
 	DECLARE_MESSAGE_MAP()
 
@@ -149,12 +132,16 @@ protected:
 	bool terminateWASAPI();
 	bool PickDevice(IMMDevice** DeviceToUse, bool* IsDefaultDevice, ERole* DefaultDeviceRole);
 	LPWSTR CMainDlg::GetDeviceName(IMMDeviceCollection* DeviceCollection, UINT DeviceIndex);
-	int generateSignal(int signalFreq, int channelCount,
-						CWASAPIRenderer::RenderSampleType SampleType,
-						int samplesPerSecond,
-						int frameSize,
-						int bufferSizeInBytes, int totNumberOfBuffers);
-	bool playTone(int freq, int durationInSec);
+	    
+	int loadSignal(int channelCount,
+		CWASAPIRenderer::RenderSampleType SampleType,
+		int samplesPerSecond,
+		int frameSize,
+		int bufferSizeInBytes, int totNumberOfBuffers);
+
+
+	bool playTone();
+
 	DWORD WINAPI PlayToneThreadProc(LPVOID lpParam);
 
 	IMMDevice* device = NULL;
@@ -170,8 +157,7 @@ protected:
 	HANDLE hPlayThread = NULL;
 	DWORD dwTPlayhreadID;
 
-	CThreadParamObject* pParamObject = NULL;
-
+	
 
 	int  MasterVolume = 100;
 	int  TargetFrequency = 220;
@@ -182,29 +168,28 @@ protected:
 	bool UseCommunicationsDevice;
 	bool UseMultimediaDevice;
 	bool DisableMMCSS;
-	int  signalType = SINE_SIGNAL;
+	int  signalType = 0;
 	int  result = 0;
 
 	wchar_t* OutputEndpoint;
+
+	WavLoader* wavLoader = NULL;
+
 
 	////////////////////////////////////////////////////////////////////  
 
 public:
 	afx_msg void OnNMCustomdrawSineWaveRadio(NMHDR* pNMHDR, LRESULT* pResult);
-	
-	
+
 	afx_msg void OnBnClickedPlayButton();
 	afx_msg void OnBnClickedStopButton();
 	
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
-	afx_msg void OnBnClickedSineWaveRadio();
-	afx_msg void OnBnClickedSawWaveRadio();
-	afx_msg void OnBnClickedTriangleWaveRadio();
-	afx_msg void OnBnClickedSquareWaveRadio();
-	afx_msg void OnBnClickedWhiteNoiseRadio();
-	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+	afx_msg int  OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnDestroy();
-	afx_msg void OnBnClickedComplexSignalRadio();
-
 	
+	afx_msg void OnBnClickedLoadWavFile();
+	afx_msg void OnBnClickedClearWavFileButtonValue();
+	
+	afx_msg void OnEnChangeWavFileEdit();
 };

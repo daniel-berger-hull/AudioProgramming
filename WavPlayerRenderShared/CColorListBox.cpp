@@ -23,6 +23,7 @@ CColorListBox::~CColorListBox()
 BEGIN_MESSAGE_MAP(CColorListBox, CListBox)
     ON_WM_CREATE()
     ON_WM_DRAWITEM()
+    ON_BN_CLICKED(IDC_CLEAR_WAV_FILE_BUTTON_VALUE, &CColorListBox::OnBnClickedClearWavFileButtonValue)
 END_MESSAGE_MAP()
 
 
@@ -87,3 +88,10 @@ void CColorListBox::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 // CColorListBox message handlers
 
 
+
+
+void CColorListBox::OnBnClickedClearWavFileButtonValue()
+{
+    int a = 2;
+    // TODO: Add your control notification handler code here
+}

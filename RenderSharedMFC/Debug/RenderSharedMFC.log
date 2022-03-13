@@ -1,0 +1,27 @@
+﻿  pch.cpp
+  CColorListBox.cpp
+  CMainDlg.cpp
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\CMainDlg.cpp(839,16): warning C4018: '<': signed/unsigned mismatch
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\CMainDlg.cpp(1021,46): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\ToneGen.h(93,33): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\CMainDlg.cpp(867): message : see reference to function template instantiation 'void GenerateSineSamples<float>(GenParams *)' being compiled
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\ToneGen.h(140,1): warning C4305: 'initializing': truncation from 'double' to 'float'
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\CMainDlg.cpp(869): message : see reference to function template instantiation 'void GenerateTriangleSamples<float>(GenParams *)' being compiled
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\ToneGen.h(141,1): warning C4305: 'initializing': truncation from 'double' to 'float'
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\ToneGen.h(142,1): warning C4305: 'initializing': truncation from 'double' to 'float'
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\ToneGen.h(156,33): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\ToneGen.h(257,17): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\CMainDlg.cpp(871): message : see reference to function template instantiation 'void GenerateSawSamples<float>(GenParams *)' being compiled
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\ToneGen.h(258,24): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\ToneGen.h(313,1): warning C4305: 'initializing': truncation from 'double' to 'float'
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\CMainDlg.cpp(873): message : see reference to function template instantiation 'void GenerateSquareSamples<float>(GenParams *)' being compiled
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\ToneGen.h(323,33): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\ToneGen.h(375,33): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\CMainDlg.cpp(875): message : see reference to function template instantiation 'void GenerateWhiteNoiseSamples<float>(GenParams *)' being compiled
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\ToneGen.h(211,33): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\CMainDlg.cpp(877): message : see reference to function template instantiation 'void GenerateMultiSineSamples<float>(GenParams *)' being compiled
+  RenderSharedMFC.cpp
+  WASAPIRenderer.cpp
+  Generating Code...
+D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\CMainDlg.cpp(911): warning C4715: 'CMainDlg::generateSignal': not all control paths return a value
+  RenderSharedMFC.vcxproj -> D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\Debug\RenderSharedMFC.exe

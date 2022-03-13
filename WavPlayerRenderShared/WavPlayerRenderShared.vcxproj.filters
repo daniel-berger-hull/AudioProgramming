@@ -42,6 +42,9 @@
     <ClInclude Include="ToneGen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WavLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WavPlayerRenderShared.cpp">
@@ -57,6 +60,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WASAPIRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WavLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -90,6 +96,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\bitmap1.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\RenderSharedMFC.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
