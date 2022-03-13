@@ -1,1 +1,0 @@
-D:\data\workspace\C++\Audio\AudioProgramming\RenderSharedMFC\Debug\RenderSharedMFC.exe
