@@ -223,6 +223,4 @@ public:
 	afx_msg void OnBnClickedWhiteNoiseTypeRadio();
 	afx_msg void OnBnClickedPinkNoiseTypeRadio();
 	afx_msg void OnBnClickedBrownNoiseTypeRadio();
-	afx_msg void OnBnDropDownPinkButton(NMHDR* pNMHDR, LRESULT* pResult);
-	afx_msg void OnBnClickedPinkButton();
 };

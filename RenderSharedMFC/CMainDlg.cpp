@@ -97,7 +97,6 @@ BEGIN_MESSAGE_MAP(CMainDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_WHITE_NOISE_TYPE_RADIO, &CMainDlg::OnBnClickedWhiteNoiseTypeRadio)
 	ON_BN_CLICKED(IDC_PINK_NOISE_TYPE_RADIO, &CMainDlg::OnBnClickedPinkNoiseTypeRadio)
 	ON_BN_CLICKED(IDC_BROWN_NOISE_TYPE_RADIO, &CMainDlg::OnBnClickedBrownNoiseTypeRadio)
-	ON_BN_CLICKED(IDC_PINK_BUTTON, &CMainDlg::OnBnClickedPinkButton)
 END_MESSAGE_MAP()
 
 
@@ -945,7 +944,7 @@ int CMainDlg::generateSignal(int signalFreq, int channelCount,
 			else if (m_signalType == SQUARE_SIGNAL)
 				GenerateSquareSamples<float>(&genParams);
 			else if (m_signalType == NOISE_SIGNAL)
-
+			{
 				if (m_noiseType == WHITE_NOISE_SIGNAL)
 				{
 					GenerateWhiteNoiseSamples<float>(&genParams);
@@ -961,7 +960,7 @@ int CMainDlg::generateSignal(int signalFreq, int channelCount,
 					// Modify this when a Brown noise method exists
 					GenerateWhiteNoiseSamples<float>(&genParams);
 				}
-
+			}
 			else if (m_signalType == COMPLEX_SIGNAL)
 				GenerateMultiSineSamples<float>(&genParams);
 			
@@ -1140,16 +1139,3 @@ void CMainDlg::updateHarmonicLevels(int harmonicIndex, int value)
 
 
 
-
-
-
-
-void CMainDlg::OnBnClickedPinkButton()
-{
-	PinkNumber pn(10000);
-
-	for (int i = 0; i < 100; i++)
-	{
-		TRACE("%d : %d\n", i, pn.GetNextValue());
-	}
-}
