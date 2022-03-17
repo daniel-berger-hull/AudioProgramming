@@ -25,6 +25,14 @@ WavPlayerRenderShared
 A project to render the content of a wav file, using the WASAPI and MFC skeleton used in the RenderSharedMFC.
 
 
+WavPlayerFFTDisplay
+-------------------
+
+This is a modified version of the WavPlayerRenderShared project, where an FFT calculation and display is added.
+The CaptureAudioFFT project been helping acheiving this task (but this project is about output wave while
+CaptureAudioFFT is about recording).
+
+
 CaptureAudioFFT
 ---------------
 
