@@ -41,6 +41,7 @@ protected:
 	HICON m_hIcon;
 	CFrequencyGraph m_graph;
 	CFrequencyGraph m_graph2;
+
 	DataHolder m_data;
 	Recorder m_rec;
 

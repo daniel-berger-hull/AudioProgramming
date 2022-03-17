@@ -1,3 +1,4 @@
 # ignore all logs
 **/Debug
+**/Release
 **/.vs
