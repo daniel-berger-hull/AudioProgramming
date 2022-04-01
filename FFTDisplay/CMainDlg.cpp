@@ -4,12 +4,13 @@
 
 #include "pch.h"
 #include "framework.h"
-#include "WavPlayerFFTDisplay.h"
+#include "FFTDisplay.h"
 #include "CMainDlg.h"
 #include "afxdialogex.h"
 #include "ToneGen.h"
 
-//#include "WavLoader.h"
+
+#include "fft-real-pair.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -26,19 +27,31 @@ typedef struct PlayThreadParams {
 
 
 
-//WaveParams  currentWaveParams;
+
+
+
+WaveParams  currentWaveParams;
 
 CMainDlg::CMainDlg(CWnd* pParent /*=nullptr*/)
-	: CDialogEx(IDD_WAVPLAYER_FFT_DIALOG, pParent)
+	: CDialogEx(IDD_FFT_DISPLAY_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
 CMainDlg::~CMainDlg()
 {
-	if (wavLoader != NULL)     delete wavLoader;
+	if (pParamObject != NULL)  delete pParamObject;
+
 }
 
+
+
+
+void CMainDlg::initModel()
+{
+	m_signalType = SINE_SIGNAL;
+	
+}
 
 
 void CMainDlg::DoDataExchange(CDataExchange* pDX)
@@ -48,13 +61,12 @@ void CMainDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_PLAY_BUTTON, m_playButton);
 	DDX_Control(pDX, IDC_STOP_BUTTON, m_stopButton);
 
-
+	DDX_Control(pDX, IDC_SIGNAL_FREQUENCY_SLIDER, m_frequencySignalSlider);
 	DDX_Control(pDX, IDC_MASTER_VOLUME_SLIDER, m_masterVolumeSlider);
 
+	DDX_Text(pDX, IDC_SIGNAL_FREQUENCY_LABEL, m_frequencyValue);
+	DDX_Text(pDX, IDC_MASTER_VOLUME_LABEL, m_masterVolumeValue);
 
-	DDX_Control(pDX, IDC_WAV_FILE_EDIT, m_wavFileNameEdit);
-	DDX_Control(pDX, IDC_LOAD_WAV_FILE, m_loadWavFileButton);
-	DDX_Control(pDX, IDC_CLEAR_WAV_FILE_BUTTON_VALUE, m_clearWavFileButton);
 
 	DDX_Control(pDX, IDC_SPECTRUM_GRAPH, m_graph);
 
@@ -68,37 +80,13 @@ BEGIN_MESSAGE_MAP(CMainDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_WM_HSCROLL()
 
-
 	ON_BN_CLICKED(IDC_PLAY_BUTTON, &CMainDlg::OnBnClickedPlayButton)
 	ON_BN_CLICKED(IDC_STOP_BUTTON, &CMainDlg::OnBnClickedStopButton)
-	ON_BN_CLICKED(IDC_LOAD_WAV_FILE, &CMainDlg::OnBnClickedLoadWavFile)
-	ON_BN_CLICKED(IDC_CLEAR_WAV_FILE_BUTTON_VALUE, &CMainDlg::OnBnClickedClearWavFileButtonValue)
-	ON_EN_CHANGE(IDC_WAV_FILE_EDIT, &CMainDlg::OnEnChangeWavFileEdit)
-
-
-	//ON_BN_CLICKED(IDC_SIMPLE_FILTER_CHECK, &CMainDlg::OnBnClickedSimpleFilterButton)
-	//ON_BN_CLICKED(IDC_RUNNING_AVERAGE_FILTER_CHECK, &CMainDlg::OnBnClickedRunningAverageFilterButton)
-	//ON_BN_CLICKED(IDC_SMOOTH_OPERATOR_FILTER_CHECK, &CMainDlg::OnBnClickedSmoothOperatorFilterButton)
-	ON_BN_CLICKED(IDC_SIMPLE_FILTER_RADIO, &CMainDlg::OnBnClickedSimpleFilterButton)
-	ON_BN_CLICKED(IDC_RUNNING_AVERAGE_FILTER_RADIO, &CMainDlg::OnBnClickedRunningAverageFilterButton)
-	ON_BN_CLICKED(IDC_SMOOTH_OPERATOR_FILTER_RADIO, &CMainDlg::OnBnClickedSmoothOperatorFilterButton)
-
-
-	
-	
-	
-
-
-
-	ON_BN_CLICKED(IDC_EVENT_SET_BUTTON, &CMainDlg::OnBnClickedSetEventButton)
 	
 END_MESSAGE_MAP()
 
 
 // CMainDlg message handlers
-
-
-
 
 
 static UINT indicators[] =
@@ -111,22 +99,33 @@ static UINT indicators[] =
 
 void CMainDlg::setupSliders()
 {
+	m_frequencySignalSlider.SetRange(MINIMAL_FREQUENCY, MAXMIMAL_FREQUENCY); //sending true\false doesn't matter
+	m_frequencySignalSlider.SetPos(MINIMAL_FREQUENCY);
+	m_frequencySignalSlider.SetTic(20);
+	m_frequencySignalSlider.SetTicFreq(1);
 
 	m_masterVolumeSlider.SetRange(0, 100);
 	m_masterVolumeSlider.SetPos(100);
+
+
+	//m_firstHarmonicLevelSlider.SetRange(HARMONIC_MIN_LEVEL, HARMONIC_MAX_LEVEL); //sending true\false doesn't matter
+	//m_firstHarmonicLevelSlider.SetPos(50);
+
+	//m_secondHarmonicLevelSlider.SetRange(HARMONIC_MIN_LEVEL, HARMONIC_MAX_LEVEL); //sending true\false doesn't matter
+	//m_secondHarmonicLevelSlider.SetPos(30);
+
+	//m_thirdHarmonicLevelSlider.SetRange(HARMONIC_MIN_LEVEL, HARMONIC_MAX_LEVEL); //sending true\false doesn't matter
+	//m_thirdHarmonicLevelSlider.SetPos(15);
+
+	//m_fourthHarmonicLevelSlider.SetRange(HARMONIC_MIN_LEVEL, HARMONIC_MAX_LEVEL); //sending true\false doesn't matter
+	//m_fourthHarmonicLevelSlider.SetPos(5);
+
+	m_frequencyValue.Format(_T("%d"), MINIMAL_FREQUENCY);
 	m_masterVolumeValue.Format(_T("%d"), 100);
 }
 
 
 
-//void CMainDlg::decorateRadioButtonSection()
-//{
-//	HBITMAP sineBitmap = LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BITMAP_SINE_WAVE));
-//
-//	CWnd* sineRadioButton = GetDlgItem(IDC_SINE_WAVE_RADIO);
-//
-//	sineRadioButton->SendMessage(BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)sineBitmap);
-//}
 
 
 
@@ -142,27 +141,28 @@ BOOL CMainDlg::OnInitDialog()
 
 	m_backgroundBrush.CreateSolidBrush(RGB(0, 84, 165));
 
-
-	//CRect rct(15, 90, 381, 70);
-	//m_graph.Create(_T("STATIC"), _T(""), WS_VISIBLE | WS_CHILD, rct, this, IDC_GRAPH_STATIC);
-	
-
-
 	setupSliders();
+
+
+	initModel();
+
+	m_graph.setGraphBarCount(FFT_FREQUENCY_POINTS);
+
+
 	
-	UpdateData(FALSE);
+
+	//m_firstHarmonicLevel.Format(_T("%d"), m_harmonicLevels[0]);
+	//m_secondHarmonicLevel.Format(_T("%d"), m_harmonicLevels[1]);
+	//m_thirdHarmonicLevel.Format(_T("%d"), m_harmonicLevels[2]);
+	//m_fourthHarmonicLevel.Format(_T("%d"), m_harmonicLevels[3]);
 
 
-	//TEST_WAVE_FILENAME
-
-
-	//m_wavFileNameEdit.GetWindowTextW();
-
-	m_wavFileNameEdit.SetWindowTextW(_T(TEST_WAVE_FILENAME));
-
-
+	
 
 	m_graph.ShowWindow(TRUE);
+
+
+	UpdateData(FALSE);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -174,17 +174,11 @@ HBRUSH CMainDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
 	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
 
-
-
-	
-	
-
-
-
 	if (nCtlColor == CTLCOLOR_STATIC )
 	{
 		
-		if (pWnd->GetDlgCtrlID() == IDC_MASTER_VOLUME_SLIDER  )
+		if (pWnd->GetDlgCtrlID() == IDC_SIGNAL_FREQUENCY_SLIDER ||
+			pWnd->GetDlgCtrlID() == IDC_MASTER_VOLUME_SLIDER )
 		{
 			//pDC->SetTextColor(RGB(255, 255, 255));
 
@@ -192,16 +186,23 @@ HBRUSH CMainDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 			return m_backgroundBrush;
 		}
 
-		if ( pWnd->GetDlgCtrlID() == IDC_MASTER_VOLUME_LABEL )
+		if (pWnd->GetDlgCtrlID() == IDC_SIGNAL_FREQUENCY_LABEL ||
+			pWnd->GetDlgCtrlID() == IDC_FREQUENCY_HZ_LABEL ||
+			pWnd->GetDlgCtrlID() == IDC_MASTER_VOLUME_LABEL ||
+			pWnd->GetDlgCtrlID() == IDC_FREQUENCY_LBL)
 		{
 			pDC->SetTextColor(RGB(255, 255, 255));
 			pDC->SetBkMode(TRANSPARENT);
 			return m_backgroundBrush; 
 		}
 
+
+
+		
+
 		if (pWnd->GetDlgCtrlID() == IDC_GROUP_VOLUME ||
-			pWnd->GetDlgCtrlID() == IDC_WAV_FILE_GROUP ||
-			pWnd->GetDlgCtrlID() == IDC_WAVE_TYPE_STATIC  )
+			pWnd->GetDlgCtrlID() == IDC_GROUP_FREQUENCY ||
+			pWnd->GetDlgCtrlID() == IDC_WAVE_TYPE_STATIC )
 		{
 			pDC->SetTextColor(RGB(255,255,255));
 			pDC->SetBkMode(TRANSPARENT);
@@ -241,12 +242,94 @@ void CMainDlg::OnPaint()
 	{
 
 		CPaintDC dc(this); // device context for painting
+
+
 		CRect rect;
+		GetClientRect(&rect);
+
+	
 			
 		GetClientRect(&rect);
 		dc.FillRect(&rect, &m_backgroundBrush);
+
+		//drawFrequencyGraph(&dc, &rect);
+		
 	}
 }
+
+//
+//void CMainDlg::drawFrequencyGraph(CPaintDC* dc, CRect* rect)
+//{
+//	CRect winRect,outerBarRect, innerBarRect;
+//
+//
+//	winRect.top = rect->top + 400;
+//	winRect.left = rect->left + 30;
+//	winRect.right = rect->right - 30;
+//	winRect.bottom = rect->bottom - 30;
+//
+//
+//	CBrush graphBrush(RGB(0, 0, 0));
+//	CBrush barBrush(RGB(0, 255, 30));
+//
+//
+//	dc->FillRect(&winRect, &graphBrush);
+//
+//	const int rangeMaxValue = winRect.right - winRect.left;
+//	const int bandSize = rangeMaxValue / 128;
+//	const int startX = winRect.left + 1;
+//	const int topY = winRect.top;
+//	const int bottomY = winRect.bottom;
+//
+//
+//	winRect.left = startX;
+//	winRect.right = winRect.left + bandSize;
+//
+//
+//	outerBarRect.left = startX;
+//	outerBarRect.right = outerBarRect.left + bandSize;
+//	outerBarRect.bottom = winRect.bottom - 1;
+//
+//
+//	innerBarRect.bottom = outerBarRect.bottom - 1;
+//
+//
+//	CPen pen(PS_SOLID, 1, RGB(0, 170, 0));
+//	dc->SelectObject(pen);
+//
+//
+//	int maxValue = 0;
+//	int index = -1;
+//
+//	for (int i = 0; i < 128; i++)
+//	{
+//
+//		innerBarRect.left = outerBarRect.left + 1;
+//		innerBarRect.right = outerBarRect.right - 1;
+//
+//
+//		int barValue = (int)outputMag[i];
+//
+//
+//		if (maxValue < barValue)
+//		{
+//			maxValue = barValue;
+//			index = i;
+//		}
+//
+//		outerBarRect.top = bottomY - barValue;
+//		innerBarRect.top = outerBarRect.top + 1;
+//
+//		dc->Rectangle(&outerBarRect);
+//		dc->FillRect(&innerBarRect, &barBrush);
+//
+//		outerBarRect.left = outerBarRect.right;
+//		outerBarRect.right += bandSize;
+//	}
+//
+//	TRACE("Max Value of %d at index %d\n", maxValue, index);
+//}
+
 
 // The system calls this function to obtain the cursor to display while the user drags
 //  the minimized window.
@@ -267,24 +350,27 @@ void CMainDlg::OnNMCustomdrawSineWaveRadio(NMHDR* pNMHDR, LRESULT* pResult)
 
 void CMainDlg::OnBnClickedPlayButton()
 {
-	playTone();
-	m_playButton.EnableWindow(FALSE);
-	m_stopButton.EnableWindow(TRUE);
+	playTone(TargetFrequency, TargetDurationInSec);
 }
 
 
 void CMainDlg::OnBnClickedStopButton()
 {
-	//There is nothing done here, but it should be able to stop
-	//the rendering of the audio file when clicking on the stop button
-	m_playButton.EnableWindow(TRUE);
-	m_stopButton.EnableWindow(FALSE);
+	// TODO: Add your control notification handler code here
 }
 
 
 void CMainDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
-	if (pScrollBar == (CScrollBar*)&m_masterVolumeSlider)
+	if (pScrollBar == (CScrollBar*)&m_frequencySignalSlider)
+	{
+		int value = m_frequencySignalSlider.GetPos();
+		m_frequencyValue.Format(_T("%d"), value);
+		TargetFrequency = value;
+
+		UpdateData(FALSE);
+	}
+	else if (pScrollBar == (CScrollBar*)&m_masterVolumeSlider)
 	{
 		int value = m_masterVolumeSlider.GetPos();
 		MasterVolume = value;
@@ -292,10 +378,58 @@ void CMainDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 		m_masterVolumeValue.Format(_T("%d"), value);
 		UpdateData(FALSE);
 	}
+	/*else if (pScrollBar == (CScrollBar*)&m_firstHarmonicLevelSlider)
+	{
+		int value = m_firstHarmonicLevelSlider.GetPos();
+		m_harmonicLevels[0] = value;
+	
+		m_firstHarmonicLevel.Format(_T("%d"), value);
+
+		updateHarmonicLevels(0, value);
+		updateSliders();
+		UpdateData(FALSE);
+	}
+	else if (pScrollBar == (CScrollBar*)&m_secondHarmonicLevelSlider)
+	{
+		int value = m_secondHarmonicLevelSlider.GetPos();
+		
+		m_harmonicLevels[1] = value;
+		m_secondHarmonicLevel.Format(_T("%d"), value);
+		updateHarmonicLevels(1, value);
+		updateSliders();
+
+		UpdateData(FALSE);
+	}
+	else if (pScrollBar == (CScrollBar*)&m_thirdHarmonicLevelSlider)
+	{
+		int value = m_thirdHarmonicLevelSlider.GetPos();
+		
+		m_harmonicLevels[2] = value;
+		m_thirdHarmonicLevel.Format(_T("%d"), value);
+		updateHarmonicLevels(2, value);
+		updateSliders();
+
+		UpdateData(FALSE);
+	}
+	else if (pScrollBar == (CScrollBar*)&m_fourthHarmonicLevelSlider)
+	{
+		int value = m_fourthHarmonicLevelSlider.GetPos();
+		
+		m_harmonicLevels[3] = value;
+		m_fourthHarmonicLevel.Format(_T("%d"), value);
+		updateHarmonicLevels(3, value);
+		updateSliders();
+
+		UpdateData(FALSE);
+	}*/	
 	else {
 		CDialog::OnHScroll(nSBCode, nPos, pScrollBar);
 	}
 }
+
+
+
+
 
 
 
@@ -304,7 +438,9 @@ int CMainDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CDialogEx::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
+
 	initWASAPI();
+
 	return 0;
 }
 
@@ -315,62 +451,11 @@ void CMainDlg::OnDestroy()
 	m_graph.stopDisplayRefresh();
 
 	terminateWASAPI();
+
 	CDialogEx::OnDestroy();
+
+	// TODO: Add your message handler code here
 }
-
-
-
-
-
-void CMainDlg::OnBnClickedLoadWavFile()
-{
-	CString test = m_wavFileNameValue;
-
-	CString sWindowText;
-	m_wavFileNameEdit.GetWindowText(sWindowText);
-
-	AfxBeginThread(runFileLoader, this);
-}
-
-
-void CMainDlg::OnBnClickedClearWavFileButtonValue()
-{
-	m_wavFileNameEdit.SetWindowTextW(_T(""));
-
-	m_loadWavFileButton.EnableWindow(FALSE);
-	m_clearWavFileButton.EnableWindow(FALSE);
-}
-
-
-
-void CMainDlg::OnBnClickedSimpleFilterButton()
-{
-	filterType = SIMPLE_FILTER;
-}
-
-void CMainDlg::OnBnClickedRunningAverageFilterButton()
-{
-	filterType = RUNNING_AVERAGE_FILTER;
-}
-
-void CMainDlg::OnBnClickedSmoothOperatorFilterButton()
-{
-	filterType = SMOOTH_OPERATOR_FILTER;
-}
-
-
-
-void CMainDlg::OnBnClickedSetEventButton()
-{
-	m_graph.setRefreshEvent();
-}
- 
-void CMainDlg::OnEnChangeWavFileEdit()
-{
-	m_loadWavFileButton.EnableWindow(TRUE);
-	m_clearWavFileButton.EnableWindow(TRUE);
-}
-
 
 UINT CMainDlg::run(LPVOID p)
 {
@@ -382,7 +467,6 @@ UINT CMainDlg::run(LPVOID p)
 	
 	return 0;
 }
-
 
 
 
@@ -436,13 +520,12 @@ bool CMainDlg::initWASAPI()
 		renderBufferCount = renderDataLength / (renderBufferSizeInBytes);
 
 		TRACE("CWASAPIRenderer initiated with success\n");
-		TRACE("A) Buffer Size per Period  = %d\n", renderer->BufferSizePerPeriod());
-		TRACE("B) Frame Size = %d\n", renderer->FrameSize());
-		TRACE("C) Sample by Seconds = %d\n", renderer->SamplesPerSecond());
-		TRACE("\nD) Buffer Size In Bytes = %d  (A * B)\n", renderBufferSizeInBytes);
+		TRACE("Buffer Size per Period  = %d\n", renderer->BufferSizePerPeriod());
+		TRACE("Frame Size = %d\n", renderer->FrameSize());
 
-		TRACE("E) Data Length = %d (C * DurationInSec * B)\n", renderDataLength);
-		TRACE("F) Total count of Buffers = %d (E / D)\n", renderBufferCount);
+		TRACE("Buffer Size In Bytes = %d\n", renderBufferSizeInBytes);
+		TRACE("Data Length = %d\n", renderBufferSizeInBytes);
+		TRACE("Total number of Buffers = %d\n", renderBufferCount);
 	}
 	else
 	{
@@ -682,36 +765,42 @@ LPWSTR CMainDlg::GetDeviceName(IMMDeviceCollection* DeviceCollection, UINT Devic
 
 
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+//   signalFreq:         desired frequency of the signal to produce
 //   channelCount:       Can be either 1 (mono) or 2 (Stereo)
 //   SampleType:        WASAPI related values  --> SampleTypeFloat or SampleType16BitPCM
 //   samplesPerSecond:   Number of samples by second to provide to the sound card
 //   frameSize:          Size of one full sample:  BitPerSample * channelCount
 //   bufferSizeInBytes:  Full size of the byte array to contains all the frames data
 //   totNumberOfBuffer:  how many sub buffer required to cover all the time of the signal
-
-int CMainDlg::loadSignal(int channelCount,
-						CWASAPIRenderer::RenderSampleType SampleType,
-						int samplesPerSecond,
-						int frameSize,
-						int bufferSizeInBytes, int totNumberOfBuffers)
+int CMainDlg::generateSignal(int signalFreq, int channelCount,
+	CWASAPIRenderer::RenderSampleType SampleType,
+	int samplesPerSecond,
+	int frameSize,
+	int bufferSizeInBytes, int totNumberOfBuffers,
+	bool addNoiseIndicator)
 {
 	RenderBuffer** currentBufferTail = &renderQueue;
 
+	double theta = 0.0;
+	double carryOver = 0.0;
+
 	GenParams genParams;
 
+
+	//genParams.Buffer = renderBuffer->_Buffer;
+	//genParams.BufferLength = renderBuffer->_BufferLength;
+	genParams.Frequency = TargetFrequency;
 	genParams.ChannelCount = channelCount;
 	genParams.SamplesPerSecond = samplesPerSecond;
-
+	genParams.InitialTheta = &theta;
+	genParams.carryOverValue = &carryOver;
+	genParams.waveParams = &currentWaveParams;
+	
+	genParams.addNoiseInd = addNoiseIndicator;
+	TRACE("Will generate the data of a signal of freq %dl\n", signalFreq);
 
 	size_t i;
-	int currentBufferIndex = 0;
-	int16_t* leftBufferPtr = wavLoader->getLeftChannelBuffer();
-	int16_t* rightBufferPtr = wavLoader->getRightChannelBuffer();
-	int16_t  samplesByBuffers = bufferSizeInBytes / frameSize;
-
 	for (i = 0; i < totNumberOfBuffers; i += 1)
 	{
 		RenderBuffer* renderBuffer = new RenderBuffer();
@@ -737,17 +826,27 @@ int CMainDlg::loadSignal(int channelCount,
 		switch (SampleType)
 		{
 		case CWASAPIRenderer::SampleTypeFloat:
-			LoadWavSamples<float>(&genParams, leftBufferPtr, rightBufferPtr, filterType);
+			
+			if (m_signalType == SINE_SIGNAL)
+				GenerateSineSamples<float>(&genParams);
+			else if (m_signalType == NOISE_SIGNAL)
+				GenerateWhiteNoiseSamples<float>(&genParams);
+
+
+			
 			break;
-
 		case CWASAPIRenderer::SampleType16BitPCM:
-			LoadWavSamples<short>(&genParams, leftBufferPtr, rightBufferPtr, filterType);
+			TRACE("CWASAPIRenderer::SampleType16BitPCM\n");
 
+			if (m_signalType == SINE_SIGNAL)
+				GenerateSineSamples<short>(&genParams);
+			else if (m_signalType == NOISE_SIGNAL)
+				GenerateWhiteNoiseSamples<short>(&genParams);
+			
+			
+		
 			break;
 		}
-
-		leftBufferPtr += samplesByBuffers;
-		rightBufferPtr += samplesByBuffers;
 
 		//
 		//  Link the newly allocated and filled buffer into the queue.  
@@ -760,77 +859,74 @@ int CMainDlg::loadSignal(int channelCount,
 }
 
 
-
-bool CMainDlg::playTone()
+bool CMainDlg::playTone(int freq, int durationInSec)
 {	
+	pParamObject = new CThreadParamObject(freq, durationInSec);
 	AfxBeginThread(run, this);
 
 	return true;
 }
 
 
-
-
-UINT CMainDlg::runFileLoader(LPVOID pParam)
+UINT MyThreadProc(LPVOID pParam)
 {
+	CThreadParamObject* pObject = (CThreadParamObject*)pParam;
 
-	TRACE(" CListSizeDraw::run(LPVOID p) static version...\n");
-	CMainDlg* me = (CMainDlg*)pParam;
-	me->runFileLoaderThread();
+	if (pObject == NULL ||
+		!pObject->IsKindOf(RUNTIME_CLASS(CThreadParamObject)))
+		return 1;   // if pObject is not valid
+
+		// do something with 'pObject'
 
 	return 0;   // thread completed successfully
 }
 
-void CMainDlg::runFileLoaderThread()
-{
 
-	TRACE(" CMainDlg::runFileLoaderThread() Will load the file..\n");
-
-	CString sWindowText;
-	m_wavFileNameEdit.GetWindowText(sWindowText);
-
-	if (sWindowText.IsEmpty())  return;
-
-	
-	if (wavLoader == NULL )  wavLoader = new WavLoader();
-	wavLoader->open(TEST_WAVE_FILENAME);
-
-
-	m_playButton.EnableWindow(TRUE);
-
-}
 
 
 DWORD WINAPI CMainDlg::PlayToneThreadProc(LPVOID lpParam)
 {
 
-	TargetDurationInSec = 4;
+	TargetDurationInSec = 2;
 
 	TRACE("Play thread invoked...TargetDurationInSec value is %d\n", TargetDurationInSec);
 	//PPLAY_THREAD_PARAMS params = (PPLAY_THREAD_PARAMS)lpParam;
 
 
-	
-	//  *** Jan 2022:  See Note #1
+	if (pParamObject == NULL)
+	{
+		TRACE("CMainDlg::PlayToneThreadProc has a null param object!!!\n");
+	}
+
+	TargetFrequency = pParamObject->getFrequency();
+
+	//  *** Jan 2020:  See Note #1
 	if (renderer->Initialize(TargetLatency))
 	{
-		loadSignal(
+		generateSignal(TargetFrequency,
 			renderer->ChannelCount(),
 			renderer->SampleType(),
 			renderer->SamplesPerSecond(),
 			renderer->FrameSize(),
 			renderBufferSizeInBytes,
-			renderBufferCount);
+			renderBufferCount, false);
+
+		
+
 
 		TRACE("Signal generated and will start the CWASAPIRenderer thread.\n");
 
 		//  The renderer takes ownership of the render queue - it will free the items in the queue when it renders them.
 		TRACE("CWASAPIRenderer::Render Start...\n");
 
+
 		
 		renderer->setRefreshDisplayEvent(m_graph.getRefreshEvent());
-		
-		
+
+		BYTE* dataPrt = m_graph.getRawDataBufferPtr();
+		renderer->setDestinationDataBuffer(dataPrt);
+
+
 		if (renderer->Start(renderQueue))
 		{
 			do
@@ -852,15 +948,32 @@ DWORD WINAPI CMainDlg::PlayToneThreadProc(LPVOID lpParam)
 
 	TRACE("Play thread terminated\n\n\n");
 
-	m_playButton.EnableWindow(TRUE);
-	m_stopButton.EnableWindow(FALSE);
-
 	//delete params;
 	return 0;
 }
 
-
-
+// Note: The Sliders in the UI have integer values from 0 to 100
+//       while the frequency level are float values from 0.0 to 1.0
+//       so a conversion is needed here...
+//void CMainDlg::updateHarmonicLevels(int harmonicIndex, int value)
+//{
+//
+//	// default validation: the index starts at zero for the base harmonic
+//	// and goes to nbrFrequencies - 1 for the last harmonic
+//	if (harmonicIndex < 0 || harmonicIndex >= currentWaveParams.nbrFrequencies)  return;
+//	
+//	if (value < 0 || value >= 100)  return;
+//
+//	currentWaveParams.amplitude[harmonicIndex] = (float)value / 100;
+//
+//	float levelsSum = 0.0f;
+//	for (int i = 0; i < currentWaveParams.nbrFrequencies; i++)
+//		levelsSum += currentWaveParams.amplitude[i];
+//
+//	for (int i = 0; i < currentWaveParams.nbrFrequencies; i++)
+//		currentWaveParams.amplitude[i] /= levelsSum;
+//	
+//}
 
 
 

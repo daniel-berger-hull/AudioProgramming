@@ -13,7 +13,7 @@
 
 
 
-// *** Remove comment and recompile if you want more debug output in the standard console ***
+// Remove comment and recompile if you want more debug output in the standard console
 //#define DEBUG_WASAPI_RENDER
 
 
@@ -78,11 +78,23 @@ public:
     UINT32 BufferSize() { return _BufferSize; }
     UINT32 BufferSizePerPeriod();
     STDMETHOD_(ULONG, AddRef)();
-    STDMETHOD_(ULONG, Release)(); 
-
+    STDMETHOD_(ULONG, Release)();
 
     void    setRefreshDisplayEvent(HANDLE ghEvent) { ghRefreshDisplayEvent = ghEvent; }
 
+    //void   setSourceDataBuffer(BYTE** _buffer);
+
+    // This method has to be called to the class who need the data to be copied
+    // to one of its array, to perform data processing, like FFT
+    //void   assignRemoteDestDataBuffer(BYTE** remoteBufferPrtPtr) {  _RemoteBufferPtr = remoteBufferPrtPtr;   }
+    //void   assignAvailableDataSize(int* ptr) { sizePtr = ptr; }
+
+
+
+    void   setDestinationDataBuffer(BYTE* _buffer) { _RemoteBuffer = _buffer; }
+
+
+   
 
 private:
     ~CWASAPIRenderer(void);
@@ -109,11 +121,12 @@ private:
     //
     RenderBuffer *_RenderBufferQueue;
 
-
     HANDLE  ghRefreshDisplayEvent;
-    
-    
+    //BYTE** _RemoteBufferPtr = NULL;
 
+    BYTE*  _RemoteBuffer = NULL;
+
+    //int*    sizePtr = NULL;
 
     static DWORD __stdcall WASAPIRenderThread(LPVOID Context);
     //DWORD CWASAPIRenderer::DoRenderThread();

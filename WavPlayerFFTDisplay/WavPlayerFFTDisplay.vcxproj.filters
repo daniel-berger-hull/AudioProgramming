@@ -45,6 +45,9 @@
     <ClInclude Include="CSpectrumGraphCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Fourier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WavPlayerFFTDisplay.cpp">
@@ -63,6 +66,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CSpectrumGraphCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Fourier.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -20,8 +20,11 @@
 #define IDC_WAV_FILE_EDIT               1030
 #define IDC_GRAPH_STATIC                1031
 #define IDC_SPECTRUM_GRAPH              1032
-#define IDC_BUTTON1                     1033
 #define IDC_EVENT_SET_BUTTON            1033
+#define IDC_SMOOTH_OPERATOR_FILTER_CHECK 1036
+#define IDC_SIMPLE_FILTER_RADIO         1037
+#define IDC_RUNNING_AVERAGE_FILTER_RADIO 1038
+#define IDC_SMOOTH_OPERATOR_FILTER_RADIO 1039
 
 // Next default values for new objects
 // 
@@ -29,7 +32,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        137
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1034
+#define _APS_NEXT_CONTROL_VALUE         1038
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

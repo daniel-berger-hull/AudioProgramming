@@ -15,27 +15,52 @@
 
 #include <strsafe.h>
 
+
 #include "CSpectrumGraphCtrl.h"
 
-#include "WavLoader.h"
+
+////////////////////////////////////////////////////////////////////////////  
+
+
+#define MINIMAL_FREQUENCY                    220
+#define MAXMIMAL_FREQUENCY                 15000
+#define MINIMAL_VOLUME                         0
+#define MAXMIMAL_VOLUME                       10
+
+
+#define  SINE_SIGNAL						1
+#define  NOISE_SIGNAL					    2
+
+
+#define     FFT_FREQUENCY_POINTS			 100
+
+////////////////////////////////////////////////////////////////////////////  
+// Those declaration may be transfered to a WASAPI sound class
+////////////////////////////////////////////////////////////////////////////  
 
 
 
-#define MINIMAL_FREQUENCY                 220
-#define MAXMIMAL_FREQUENCY                880
-#define MINIMAL_VOLUME                      0
-#define MAXMIMAL_VOLUME                    10
-
-#define HARMONIC_MIN_LEVEL				    0
-#define HARMONIC_MAX_LEVEL				  100
+class CThreadParamObject : public CObject
+{
 
 
-#define  TEST_WAVE_FILENAME   "D:/data/workspace/C++/DigitalSignalProcessing/FFT/FreeSmallFFT/Resources/WAV/TestSound.wav"
+	public:
+		CThreadParamObject() : frequency(0), durationInSec(0)			{ }
+		CThreadParamObject(int f, int d): frequency(f),durationInSec(d)	{ }
+
+		int getFrequency()       { return frequency; }
+		int getDurationInSec()   { return durationInSec; }
+
+	private:
+	int frequency;
+	int durationInSec;
+
+};
 
 
 
 
-
+////////////////////////////////////////////////////////////////////////////  
 
 
 // CMainDlg dialog
@@ -58,42 +83,40 @@ protected:
 
 	CBrush  m_backgroundBrush;
 
-	CSpectrumGraphCtrl m_graph;
-
-
 	CButton m_playButton;
 	CButton m_stopButton;
-	CButton m_loadWavFileButton;
-	CButton m_clearWavFileButton;
-	
-	CEdit m_wavFileNameEdit;
 
+	
+	CSliderCtrl m_frequencySignalSlider;
 	CSliderCtrl m_masterVolumeSlider;
 
+	CStatic m_frequencyLabel;
+	CString m_frequencyValue;
 	CString m_masterVolumeValue;
 
-	CString m_wavFileNameValue;
-
+	CSpectrumGraphCtrl m_graph;
 
 	int m_signalType;
+	int m_noiseType;
+
 
 	// Generated message map functions
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 	virtual BOOL OnInitDialog();
 
-	afx_msg void OnPaint();
-	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+	afx_msg void    OnPaint();
+	afx_msg HBRUSH  OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	afx_msg HCURSOR OnQueryDragIcon();
+
 
 	static UINT run(LPVOID p);
 
-
-	static UINT runFileLoader(LPVOID p);
-	void runFileLoaderThread();	// This is the support method for the run method
-
+	
+	void initModel();
 
 	void setupSliders();
 
+	void EnableNoiseTypeSection(BOOL bEnable);
 
 	DECLARE_MESSAGE_MAP()
 
@@ -106,16 +129,12 @@ protected:
 	bool terminateWASAPI();
 	bool PickDevice(IMMDevice** DeviceToUse, bool* IsDefaultDevice, ERole* DefaultDeviceRole);
 	LPWSTR CMainDlg::GetDeviceName(IMMDeviceCollection* DeviceCollection, UINT DeviceIndex);
-	    
-	int loadSignal(int channelCount,
-		CWASAPIRenderer::RenderSampleType SampleType,
-		int samplesPerSecond,
-		int frameSize,
-		int bufferSizeInBytes, int totNumberOfBuffers);
-
-
-	bool playTone();
-
+	int generateSignal(int signalFreq, int channelCount,
+						CWASAPIRenderer::RenderSampleType SampleType,
+						int samplesPerSecond,
+						int frameSize,
+						int bufferSizeInBytes, int totNumberOfBuffers,bool addNoiseIndicator);
+	bool playTone(int freq, int durationInSec);
 	DWORD WINAPI PlayToneThreadProc(LPVOID lpParam);
 
 	IMMDevice* device = NULL;
@@ -131,7 +150,8 @@ protected:
 	HANDLE hPlayThread = NULL;
 	DWORD dwTPlayhreadID;
 
-	
+	CThreadParamObject* pParamObject = NULL;
+
 
 	int  MasterVolume = 100;
 	int  TargetFrequency = 220;
@@ -142,39 +162,21 @@ protected:
 	bool UseCommunicationsDevice;
 	bool UseMultimediaDevice;
 	bool DisableMMCSS;
-	int  signalType = 0;
+	int  signalType = SINE_SIGNAL;
 	int  result = 0;
 
 	wchar_t* OutputEndpoint;
 
-	WavLoader* wavLoader = NULL;
-
-	//bool filterSignal = false;
-	int  filterType = 0;
-
-
+	////////////////////////////////////////////////////////////////////  
 
 public:
 	afx_msg void OnNMCustomdrawSineWaveRadio(NMHDR* pNMHDR, LRESULT* pResult);
-
+	
 	afx_msg void OnBnClickedPlayButton();
 	afx_msg void OnBnClickedStopButton();
 	
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	afx_msg int  OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnDestroy();
-	
-	afx_msg void OnBnClickedLoadWavFile();
-	afx_msg void OnBnClickedClearWavFileButtonValue();
 
-	afx_msg void OnBnClickedSimpleFilterButton();
-	afx_msg void OnBnClickedRunningAverageFilterButton();
-	afx_msg void OnBnClickedSmoothOperatorFilterButton();
-
-
-
-	afx_msg void OnEnChangeWavFileEdit();
-
-	afx_msg void OnBnClickedSetEventButton();
-	
 };

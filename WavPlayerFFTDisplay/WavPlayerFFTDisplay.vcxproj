@@ -185,6 +185,7 @@
   <ItemGroup>
     <ClInclude Include="CMainDlg.h" />
     <ClInclude Include="CSpectrumGraphCtrl.h" />
+    <ClInclude Include="Fourier.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="WavLoader.h" />
@@ -197,6 +198,7 @@
   <ItemGroup>
     <ClCompile Include="CMainDlg.cpp" />
     <ClCompile Include="CSpectrumGraphCtrl.cpp" />
+    <ClCompile Include="Fourier.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

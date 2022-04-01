@@ -162,6 +162,9 @@ BOOL Process(void* lpData, LPWAVEHDR pwh)
 		pPeak->Update(FFT_LEN/4,fdraw);
 	}
 	
+
+	/////////////////////////////////////////////////////////////////////
+
 	// Perform FFT on right channel
 	fmax=-99999.9f,fmin=99999.9f;
 	fft_double(FFT_LEN/2,0,finright,NULL,fout,foutimg);

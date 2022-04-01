@@ -406,6 +406,9 @@ DWORD CWASAPIRenderer::WASAPIRenderThread(LPVOID Context)
     return renderer->DoRenderThread();
 }
 
+
+
+
 DWORD CWASAPIRenderer::DoRenderThread()
 {
     bool stillPlaying = true;
@@ -445,8 +448,12 @@ DWORD CWASAPIRenderer::DoRenderThread()
         {
         case WAIT_OBJECT_0 + 0:     // _ShutdownEvent
             stillPlaying = false;       // We're done, exit the loop.
-            printf("Shutdown Event received...\n");
+            FillMemory(_RemoteBuffer, 256 * _FrameSize, 0);
+            SetEvent(ghRefreshDisplayEvent);
+
+            TRACE("CWASAPIRenderer::DoRenderThread Shutdown Event received...\n");
             break;
+
         case WAIT_OBJECT_0 + 1:     // _StreamSwitchEvent
             //
             //  We've received a stream switch request.
@@ -472,6 +479,13 @@ DWORD CWASAPIRenderer::DoRenderThread()
             if (_RenderBufferQueue == NULL)
             {
                 stillPlaying = false;
+                FillMemory(_RemoteBuffer, 256 * _FrameSize,0);
+                SetEvent(ghRefreshDisplayEvent);
+                TRACE("CWASAPIRenderer::DoRenderThread _RenderBufferQueue is NULL no data to output...\n");
+
+
+              
+
             }
             else
             {
@@ -524,6 +538,11 @@ DWORD CWASAPIRenderer::DoRenderThread()
                                 printf("Unable to release buffer: %x\n", hr);
                                 stillPlaying = false;
                             }
+                 
+
+                            if (framesToWrite>256)
+                                CopyMemory(_RemoteBuffer, renderBuffer->_Buffer, 256 * _FrameSize);
+                            
                         }
                         else
                         {
