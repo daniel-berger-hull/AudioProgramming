@@ -107,26 +107,31 @@ void CMainDlg::setupSliders()
 	m_masterVolumeSlider.SetRange(0, 100);
 	m_masterVolumeSlider.SetPos(100);
 
-
-	//m_firstHarmonicLevelSlider.SetRange(HARMONIC_MIN_LEVEL, HARMONIC_MAX_LEVEL); //sending true\false doesn't matter
-	//m_firstHarmonicLevelSlider.SetPos(50);
-
-	//m_secondHarmonicLevelSlider.SetRange(HARMONIC_MIN_LEVEL, HARMONIC_MAX_LEVEL); //sending true\false doesn't matter
-	//m_secondHarmonicLevelSlider.SetPos(30);
-
-	//m_thirdHarmonicLevelSlider.SetRange(HARMONIC_MIN_LEVEL, HARMONIC_MAX_LEVEL); //sending true\false doesn't matter
-	//m_thirdHarmonicLevelSlider.SetPos(15);
-
-	//m_fourthHarmonicLevelSlider.SetRange(HARMONIC_MIN_LEVEL, HARMONIC_MAX_LEVEL); //sending true\false doesn't matter
-	//m_fourthHarmonicLevelSlider.SetPos(5);
-
 	m_frequencyValue.Format(_T("%d"), MINIMAL_FREQUENCY);
 	m_masterVolumeValue.Format(_T("%d"), 100);
 }
 
 
 
+int CMainDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
+{
+	if (CDialogEx::OnCreate(lpCreateStruct) == -1)
+		return -1;
 
+
+	initWASAPI();
+
+	return 0;
+}
+
+
+void CMainDlg::OnDestroy()
+{
+	m_graph.stopDisplayRefresh();
+	terminateWASAPI();
+
+	CDialogEx::OnDestroy();
+}
 
 
 BOOL CMainDlg::OnInitDialog()
@@ -240,95 +245,17 @@ void CMainDlg::OnPaint()
 	}
 	else
 	{
-
 		CPaintDC dc(this); // device context for painting
-
 
 		CRect rect;
 		GetClientRect(&rect);
 
-	
-			
 		GetClientRect(&rect);
 		dc.FillRect(&rect, &m_backgroundBrush);
-
-		//drawFrequencyGraph(&dc, &rect);
-		
 	}
 }
 
-//
-//void CMainDlg::drawFrequencyGraph(CPaintDC* dc, CRect* rect)
-//{
-//	CRect winRect,outerBarRect, innerBarRect;
-//
-//
-//	winRect.top = rect->top + 400;
-//	winRect.left = rect->left + 30;
-//	winRect.right = rect->right - 30;
-//	winRect.bottom = rect->bottom - 30;
-//
-//
-//	CBrush graphBrush(RGB(0, 0, 0));
-//	CBrush barBrush(RGB(0, 255, 30));
-//
-//
-//	dc->FillRect(&winRect, &graphBrush);
-//
-//	const int rangeMaxValue = winRect.right - winRect.left;
-//	const int bandSize = rangeMaxValue / 128;
-//	const int startX = winRect.left + 1;
-//	const int topY = winRect.top;
-//	const int bottomY = winRect.bottom;
-//
-//
-//	winRect.left = startX;
-//	winRect.right = winRect.left + bandSize;
-//
-//
-//	outerBarRect.left = startX;
-//	outerBarRect.right = outerBarRect.left + bandSize;
-//	outerBarRect.bottom = winRect.bottom - 1;
-//
-//
-//	innerBarRect.bottom = outerBarRect.bottom - 1;
-//
-//
-//	CPen pen(PS_SOLID, 1, RGB(0, 170, 0));
-//	dc->SelectObject(pen);
-//
-//
-//	int maxValue = 0;
-//	int index = -1;
-//
-//	for (int i = 0; i < 128; i++)
-//	{
-//
-//		innerBarRect.left = outerBarRect.left + 1;
-//		innerBarRect.right = outerBarRect.right - 1;
-//
-//
-//		int barValue = (int)outputMag[i];
-//
-//
-//		if (maxValue < barValue)
-//		{
-//			maxValue = barValue;
-//			index = i;
-//		}
-//
-//		outerBarRect.top = bottomY - barValue;
-//		innerBarRect.top = outerBarRect.top + 1;
-//
-//		dc->Rectangle(&outerBarRect);
-//		dc->FillRect(&innerBarRect, &barBrush);
-//
-//		outerBarRect.left = outerBarRect.right;
-//		outerBarRect.right += bandSize;
-//	}
-//
-//	TRACE("Max Value of %d at index %d\n", maxValue, index);
-//}
+
 
 
 // The system calls this function to obtain the cursor to display while the user drags
@@ -378,50 +305,6 @@ void CMainDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 		m_masterVolumeValue.Format(_T("%d"), value);
 		UpdateData(FALSE);
 	}
-	/*else if (pScrollBar == (CScrollBar*)&m_firstHarmonicLevelSlider)
-	{
-		int value = m_firstHarmonicLevelSlider.GetPos();
-		m_harmonicLevels[0] = value;
-	
-		m_firstHarmonicLevel.Format(_T("%d"), value);
-
-		updateHarmonicLevels(0, value);
-		updateSliders();
-		UpdateData(FALSE);
-	}
-	else if (pScrollBar == (CScrollBar*)&m_secondHarmonicLevelSlider)
-	{
-		int value = m_secondHarmonicLevelSlider.GetPos();
-		
-		m_harmonicLevels[1] = value;
-		m_secondHarmonicLevel.Format(_T("%d"), value);
-		updateHarmonicLevels(1, value);
-		updateSliders();
-
-		UpdateData(FALSE);
-	}
-	else if (pScrollBar == (CScrollBar*)&m_thirdHarmonicLevelSlider)
-	{
-		int value = m_thirdHarmonicLevelSlider.GetPos();
-		
-		m_harmonicLevels[2] = value;
-		m_thirdHarmonicLevel.Format(_T("%d"), value);
-		updateHarmonicLevels(2, value);
-		updateSliders();
-
-		UpdateData(FALSE);
-	}
-	else if (pScrollBar == (CScrollBar*)&m_fourthHarmonicLevelSlider)
-	{
-		int value = m_fourthHarmonicLevelSlider.GetPos();
-		
-		m_harmonicLevels[3] = value;
-		m_fourthHarmonicLevel.Format(_T("%d"), value);
-		updateHarmonicLevels(3, value);
-		updateSliders();
-
-		UpdateData(FALSE);
-	}*/	
 	else {
 		CDialog::OnHScroll(nSBCode, nPos, pScrollBar);
 	}
@@ -430,32 +313,6 @@ void CMainDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 
 
 
-
-
-
-int CMainDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
-{
-	if (CDialogEx::OnCreate(lpCreateStruct) == -1)
-		return -1;
-
-
-	initWASAPI();
-
-	return 0;
-}
-
-
-void CMainDlg::OnDestroy()
-{
-
-	m_graph.stopDisplayRefresh();
-
-	terminateWASAPI();
-
-	CDialogEx::OnDestroy();
-
-	// TODO: Add your message handler code here
-}
 
 UINT CMainDlg::run(LPVOID p)
 {
