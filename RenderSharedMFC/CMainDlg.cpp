@@ -215,12 +215,6 @@ HBRUSH CMainDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
 
 
-
-	
-	
-
-
-
 	if (nCtlColor == CTLCOLOR_STATIC )
 	{
 		if (pWnd->GetDlgCtrlID() == IDC_SINE_WAVE_RADIO ||
@@ -261,7 +255,7 @@ HBRUSH CMainDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 			return m_backgroundBrush; 
 		}
 
-
+		
 
 		
 

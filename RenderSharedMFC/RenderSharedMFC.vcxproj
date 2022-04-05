@@ -183,7 +183,6 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CColorListBox.h" />
     <ClInclude Include="CMainDlg.h" />
     <ClInclude Include="fft-real-pair.h" />
     <ClInclude Include="framework.h" />
@@ -196,7 +195,6 @@
     <ClInclude Include="WASAPIRenderer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CColorListBox.cpp" />
     <ClCompile Include="CMainDlg.cpp" />
     <ClCompile Include="fft-real-pair.cpp" />
     <ClCompile Include="pch.cpp">

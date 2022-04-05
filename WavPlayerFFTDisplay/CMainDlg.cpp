@@ -174,13 +174,6 @@ HBRUSH CMainDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
 	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
 
-
-
-	
-	
-
-
-
 	if (nCtlColor == CTLCOLOR_STATIC )
 	{
 		
@@ -207,6 +200,17 @@ HBRUSH CMainDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 			pDC->SetBkMode(TRANSPARENT);
 			return m_backgroundBrush;
 		}
+
+		if (pWnd->GetDlgCtrlID() == IDC_FILTER_TYPE_GROUP ||
+			pWnd->GetDlgCtrlID() == IDC_SIMPLE_FILTER_RADIO ||
+			pWnd->GetDlgCtrlID() == IDC_RUNNING_AVERAGE_FILTER_RADIO ||
+			pWnd->GetDlgCtrlID() == IDC_SMOOTH_OPERATOR_FILTER_RADIO)
+		{
+			pDC->SetTextColor(RGB(255, 255, 255));
+			pDC->SetBkMode(TRANSPARENT);
+			return m_backgroundBrush;
+		}
+
 	}
 	
 	return hbr;
