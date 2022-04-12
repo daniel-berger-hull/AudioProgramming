@@ -51,10 +51,13 @@ void CMainDlg::DoDataExchange(CDataExchange* pDX)
 
 	DDX_Control(pDX, IDC_MASTER_VOLUME_SLIDER, m_masterVolumeSlider);
 
-
+	
 	DDX_Control(pDX, IDC_WAV_FILE_EDIT, m_wavFileNameEdit);
 	DDX_Control(pDX, IDC_LOAD_WAV_FILE, m_loadWavFileButton);
 	DDX_Control(pDX, IDC_CLEAR_WAV_FILE_BUTTON_VALUE, m_clearWavFileButton);
+
+	DDX_Text(pDX, IDC_MASTER_VOLUME_LABEL, m_masterVolumeValue);
+
 
 	DDX_Control(pDX, IDC_SPECTRUM_GRAPH, m_graph);
 
@@ -75,22 +78,12 @@ BEGIN_MESSAGE_MAP(CMainDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CLEAR_WAV_FILE_BUTTON_VALUE, &CMainDlg::OnBnClickedClearWavFileButtonValue)
 	ON_EN_CHANGE(IDC_WAV_FILE_EDIT, &CMainDlg::OnEnChangeWavFileEdit)
 
-
-	//ON_BN_CLICKED(IDC_SIMPLE_FILTER_CHECK, &CMainDlg::OnBnClickedSimpleFilterButton)
-	//ON_BN_CLICKED(IDC_RUNNING_AVERAGE_FILTER_CHECK, &CMainDlg::OnBnClickedRunningAverageFilterButton)
-	//ON_BN_CLICKED(IDC_SMOOTH_OPERATOR_FILTER_CHECK, &CMainDlg::OnBnClickedSmoothOperatorFilterButton)
+	
+	ON_BN_CLICKED(IDC_NO_FILTER_RADIO, &CMainDlg::OnBnClickedNoFilterButton)
 	ON_BN_CLICKED(IDC_SIMPLE_FILTER_RADIO, &CMainDlg::OnBnClickedSimpleFilterButton)
 	ON_BN_CLICKED(IDC_RUNNING_AVERAGE_FILTER_RADIO, &CMainDlg::OnBnClickedRunningAverageFilterButton)
 	ON_BN_CLICKED(IDC_SMOOTH_OPERATOR_FILTER_RADIO, &CMainDlg::OnBnClickedSmoothOperatorFilterButton)
 
-
-	
-	
-	
-
-
-
-	ON_BN_CLICKED(IDC_EVENT_SET_BUTTON, &CMainDlg::OnBnClickedSetEventButton)
 	
 END_MESSAGE_MAP()
 
@@ -119,16 +112,6 @@ void CMainDlg::setupSliders()
 
 
 
-//void CMainDlg::decorateRadioButtonSection()
-//{
-//	HBITMAP sineBitmap = LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BITMAP_SINE_WAVE));
-//
-//	CWnd* sineRadioButton = GetDlgItem(IDC_SINE_WAVE_RADIO);
-//
-//	sineRadioButton->SendMessage(BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)sineBitmap);
-//}
-
-
 
 BOOL CMainDlg::OnInitDialog()
 {
@@ -142,27 +125,31 @@ BOOL CMainDlg::OnInitDialog()
 
 	m_backgroundBrush.CreateSolidBrush(RGB(0, 84, 165));
 
-
-	//CRect rct(15, 90, 381, 70);
-	//m_graph.Create(_T("STATIC"), _T(""), WS_VISIBLE | WS_CHILD, rct, this, IDC_GRAPH_STATIC);
-	
-
-
 	setupSliders();
 	
 	UpdateData(FALSE);
 
-
-	//TEST_WAVE_FILENAME
-
-
-	//m_wavFileNameEdit.GetWindowTextW();
-
 	m_wavFileNameEdit.SetWindowTextW(_T(TEST_WAVE_FILENAME));
 
-
-
+	m_graph.setGraphBarCount(FFT_FREQUENCY_POINTS);
 	m_graph.ShowWindow(TRUE);
+
+
+	CButton* noFilterRadioButton = (CButton*)GetDlgItem(IDC_NO_FILTER_RADIO);
+	//CButton* simpleFilterRadioButton = (CButton*)GetDlgItem(IDC_SIMPLE_FILTER_RADIO);
+	//CButton* runningAverageFilterRadioButton = (CButton*)GetDlgItem(IDC_RUNNING_AVERAGE_FILTER_RADIO);
+	//CButton* smoothOperatorFilterRadioButton = (CButton*)GetDlgItem(IDC_SMOOTH_OPERATOR_FILTER_RADIO);
+
+
+
+	noFilterRadioButton->SetCheck(1);
+
+	//noFilterRadioButton->SendMessage(BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)sineBitmap);
+	//simpleFilterRadioButton->SendMessage(BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)sawBitmap);
+	//runningAverageFilterRadioButton->SendMessage(BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)triangleBitmap);
+	//smoothOperatorFilterRadioButton->SendMessage(BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)squareBitmap);
+	
+
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -202,6 +189,7 @@ HBRUSH CMainDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 		}
 
 		if (pWnd->GetDlgCtrlID() == IDC_FILTER_TYPE_GROUP ||
+			pWnd->GetDlgCtrlID() == IDC_NO_FILTER_RADIO ||
 			pWnd->GetDlgCtrlID() == IDC_SIMPLE_FILTER_RADIO ||
 			pWnd->GetDlgCtrlID() == IDC_RUNNING_AVERAGE_FILTER_RADIO ||
 			pWnd->GetDlgCtrlID() == IDC_SMOOTH_OPERATOR_FILTER_RADIO)
@@ -330,8 +318,8 @@ void CMainDlg::OnBnClickedLoadWavFile()
 {
 	CString test = m_wavFileNameValue;
 
-	CString sWindowText;
-	m_wavFileNameEdit.GetWindowText(sWindowText);
+	/*CString sWindowText;
+	m_wavFileNameEdit.GetWindowText(sWindowText);*/
 
 	AfxBeginThread(runFileLoader, this);
 }
@@ -345,6 +333,14 @@ void CMainDlg::OnBnClickedClearWavFileButtonValue()
 	m_clearWavFileButton.EnableWindow(FALSE);
 }
 
+
+
+
+
+void CMainDlg::OnBnClickedNoFilterButton()
+{
+	filterType = NO_FILTER;
+}
 
 
 void CMainDlg::OnBnClickedSimpleFilterButton()
@@ -364,11 +360,6 @@ void CMainDlg::OnBnClickedSmoothOperatorFilterButton()
 
 
 
-void CMainDlg::OnBnClickedSetEventButton()
-{
-	m_graph.setRefreshEvent();
-}
- 
 void CMainDlg::OnEnChangeWavFileEdit()
 {
 	m_loadWavFileButton.EnableWindow(TRUE);
@@ -696,25 +687,32 @@ LPWSTR CMainDlg::GetDeviceName(IMMDeviceCollection* DeviceCollection, UINT Devic
 //   bufferSizeInBytes:  Full size of the byte array to contains all the frames data
 //   totNumberOfBuffer:  how many sub buffer required to cover all the time of the signal
 
-int CMainDlg::loadSignal(int channelCount,
+int CMainDlg::loadSignal(int SoundCardChannelCount,
+						 int wavFileChannelCount,
 						CWASAPIRenderer::RenderSampleType SampleType,
 						int samplesPerSecond,
 						int frameSize,
-						int bufferSizeInBytes, int totNumberOfBuffers)
+						int bufferSizeInBytes, int totNumberOfBuffers, 
+						int filterType)
 {
 	RenderBuffer** currentBufferTail = &renderQueue;
 
 	GenParams genParams;
 
-	genParams.ChannelCount = channelCount;
+	genParams.SoundCardChannelCount = SoundCardChannelCount;
+	genParams.WavFileChannelCount = wavFileChannelCount;
 	genParams.SamplesPerSecond = samplesPerSecond;
-
+	genParams.filteringType = filterType;
 
 	size_t i;
 	int currentBufferIndex = 0;
 	int16_t* leftBufferPtr = wavLoader->getLeftChannelBuffer();
 	int16_t* rightBufferPtr = wavLoader->getRightChannelBuffer();
 	int16_t  samplesByBuffers = bufferSizeInBytes / frameSize;
+
+	TRACE("loadSignal leftChannelBuffer=%x ,rightChannelBuffer=%x\n", leftBufferPtr, rightBufferPtr);
+	
+
 
 	for (i = 0; i < totNumberOfBuffers; i += 1)
 	{
@@ -738,16 +736,18 @@ int CMainDlg::loadSignal(int channelCount,
 		genParams.BufferLength = renderBuffer->_BufferLength;
 		genParams.masterVolume = (float)MasterVolume;
 
+		genParams.leftChannelBuffer = leftBufferPtr;
+		genParams.rightChannelBuffer = rightBufferPtr;
+
 		switch (SampleType)
 		{
-		case CWASAPIRenderer::SampleTypeFloat:
-			LoadWavSamples<float>(&genParams, leftBufferPtr, rightBufferPtr, filterType);
-			break;
+			case CWASAPIRenderer::SampleTypeFloat:
+				LoadWavSamples<float>(&genParams);
+				break;
 
-		case CWASAPIRenderer::SampleType16BitPCM:
-			LoadWavSamples<short>(&genParams, leftBufferPtr, rightBufferPtr, filterType);
-
-			break;
+			case CWASAPIRenderer::SampleType16BitPCM:
+				LoadWavSamples<short>(&genParams);
+				break;
 		}
 
 		leftBufferPtr += samplesByBuffers;
@@ -795,10 +795,13 @@ void CMainDlg::runFileLoaderThread()
 
 	if (sWindowText.IsEmpty())  return;
 
-	
 	if (wavLoader == NULL )  wavLoader = new WavLoader();
-	wavLoader->open(TEST_WAVE_FILENAME);
 
+
+	CT2A convertedFilename(sWindowText);
+	TRACE(_T("ASCII: %S\n"), convertedFilename.m_psz);
+
+	wavLoader->open(convertedFilename.m_psz);
 
 	m_playButton.EnableWindow(TRUE);
 
@@ -820,19 +823,24 @@ DWORD WINAPI CMainDlg::PlayToneThreadProc(LPVOID lpParam)
 	{
 		loadSignal(
 			renderer->ChannelCount(),
+			wavLoader->getNumChannels(),
 			renderer->SampleType(),
 			renderer->SamplesPerSecond(),
-			renderer->FrameSize(),
+			renderer->FrameSize(),     
 			renderBufferSizeInBytes,
-			renderBufferCount);
+			renderBufferCount,
+			filterType);
 
 		TRACE("Signal generated and will start the CWASAPIRenderer thread.\n");
 
 		//  The renderer takes ownership of the render queue - it will free the items in the queue when it renders them.
 		TRACE("CWASAPIRenderer::Render Start...\n");
 
-		
+		//////////////
 		renderer->setRefreshDisplayEvent(m_graph.getRefreshEvent());
+
+		BYTE* dataPrt = m_graph.getRawDataBufferPtr();
+		renderer->setDestinationDataBuffer(dataPrt);
 		
 		
 		if (renderer->Start(renderQueue))

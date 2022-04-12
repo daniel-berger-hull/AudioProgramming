@@ -83,14 +83,17 @@ class WavLoader
         _WavFileDataHeader* getDataHeader() { return  &wavFileDataHeader; }
 
         // Utility Getters on core information about the wav file...
-        int      getSubChunkSize() { return    wavFileFormatSubHeader.subchunk1Size; }
-        uint16_t getAudioFormat() { return    wavFileFormatSubHeader.audioFormat; }
-        uint16_t getNumChannels() { return    wavFileFormatSubHeader.numChannels; }
-        uint16_t getSampleRate() { return    wavFileFormatSubHeader.sampleRate; }
-        uint32_t getByteRate() { return    wavFileFormatSubHeader.byteRate; }
-        uint16_t getBlockAlign() { return    wavFileFormatSubHeader.blockAlign; }
+        int      getSubChunkSize()  { return    wavFileFormatSubHeader.subchunk1Size; }
+        uint16_t getAudioFormat()   { return    wavFileFormatSubHeader.audioFormat; }
+        uint16_t getNumChannels()   { return    wavFileFormatSubHeader.numChannels; }
+        uint16_t getSampleRate()    { return    wavFileFormatSubHeader.sampleRate; }
+        uint32_t getByteRate()      { return    wavFileFormatSubHeader.byteRate; }
+        uint16_t getBlockAlign()    { return    wavFileFormatSubHeader.blockAlign; }
         uint16_t getBytePerSample() { return    wavFileFormatSubHeader.bytePerSample; }
-        int      getChunkSize() { return    wavFileDataHeader.chunkSize; }
+        int      getChunkSize()     { return    wavFileDataHeader.chunkSize; }
+        bool     isMono()           { return wavFileFormatSubHeader.numChannels == MONO_CHANNEL; }
+        bool     isStereo()         { return wavFileFormatSubHeader.numChannels == STEREO_CHANNEL; }
+
 
         int16_t* getLeftChannelBuffer()    { return leftChannelBuffer; }
         int16_t* getRightChannelBuffer()   { return rightChannelBuffer; }

@@ -3,16 +3,22 @@
 
 #include "pch.h"
 #include "WavPlayerFFTDisplay.h"
+
 #include "CSpectrumGraphCtrl.h"
+
+
+#include "fft-real-pair.h"
+
+
 
 
 // CSpectrumGraphCtrl
 
 IMPLEMENT_DYNAMIC(CSpectrumGraphCtrl, CStatic)
 
-CSpectrumGraphCtrl::CSpectrumGraphCtrl()
+CSpectrumGraphCtrl ::CSpectrumGraphCtrl()
 {
-	m_dArray = new double[graphBarCount];
+	resetGraphData();
 
 	for (int i = 0; i < REFRESH_EVENTS_COUNT; i++)
 	{
@@ -34,8 +40,12 @@ CSpectrumGraphCtrl::CSpectrumGraphCtrl()
 
 CSpectrumGraphCtrl::~CSpectrumGraphCtrl()
 {
-	if (m_dArray != nullptr)  delete m_dArray;
+	if (inputreal != NULL)  delete inputreal;
+	if (inputimag != NULL)  delete inputimag;
+	if (outputMag != NULL)  delete outputMag;
 
+	if (rawDataBufferPtr != NULL)  delete rawDataBufferPtr;
+	
 	for (int i = 0; i < REFRESH_EVENTS_COUNT; i++)
 		CloseHandle(ghEvents[i]);
 }
@@ -56,7 +66,22 @@ void CSpectrumGraphCtrl::PreSubclassWindow()
 	CStatic::PreSubclassWindow();
 
 	//Make sure that there are at least some data, otherwise the OnPaint will crash
-	loadData();
+
+	inputreal = (double*)malloc(SIG_LENGTH * sizeof(double));
+	inputimag = (double*)malloc(SIG_LENGTH * sizeof(double));
+	outputMag = (double*)malloc(SIG_LENGTH * sizeof(double));
+
+	// The data is stereo, so there 4 + 4 bytes for each samples copied
+	rawDataBufferPtr = (BYTE*)malloc(SIG_LENGTH * 8);
+
+
+	inputreal = zero_reals(inputreal, SIG_LENGTH);
+	inputimag = zero_reals(inputimag, SIG_LENGTH);
+	outputMag = zero_reals(outputMag, SIG_LENGTH);
+
+	for (int i = 0; i < SIG_LENGTH * 8; i++)
+		rawDataBufferPtr[i] = 0;
+
 	AfxBeginThread(run, this);
 }
 
@@ -82,8 +107,13 @@ void CSpectrumGraphCtrl::OnPaint()
 
 void CSpectrumGraphCtrl::drawGraph(CPaintDC* dc, CRect* controlRect)
 {
+	// remove this
+	/*if (m_dArray == nullptr)
+	{
+		return;
+	}*/
 
-	if (m_dArray == nullptr)
+	if (outputMag == NULL)
 	{
 		return;
 	}
@@ -109,8 +139,12 @@ void CSpectrumGraphCtrl::drawGraph(CPaintDC* dc, CRect* controlRect)
 	dc->SelectObject(pen);
 	for (int i = 0; i < getGraphBarCount(); i++)
 	{
-		int currentBarHeight = (int)(m_dArray[i] * barMaxHeight);
+		//int currentBarHeight = (int)(m_dArray[i] * barMaxHeight);
+
+		int currentBarHeight = (int)((outputMag[i] / 15.0f)* barMaxHeight);
 		
+		if (currentBarHeight > barMaxHeight) currentBarHeight = barMaxHeight - 1;
+
 		currentOutsideBarRect.top = controlRect->bottom - currentBarHeight;
 		currentInnerBarRect.top = currentOutsideBarRect.top + 1;
 
@@ -127,12 +161,31 @@ void CSpectrumGraphCtrl::drawGraph(CPaintDC* dc, CRect* controlRect)
 
 
 
+void CSpectrumGraphCtrl::resetGraphData()
+{
+	// Should reset the magnitude array created by the FFT intead...
+	/*for (int i = 0; i < graphBarCount; i++)
+		m_dArray[i] = 0.0;*/
+}
+
+
 
 void CSpectrumGraphCtrl::setGraphBarCount(int barCount)
 {
+	//No work if the same number of bar is requested by the client..
+	if (barCount == graphBarCount) return;
+
+	// Otherwise, first step is to change the data array size...
+	//if (m_dArray != nullptr)  delete m_dArray;
+
 	if (barCount < MIN_GRAPH_BAR_COUNT)  graphBarCount = MIN_GRAPH_BAR_COUNT;
 	else if (barCount > MAX_GRAPH_BAR_COUNT)  graphBarCount = MAX_GRAPH_BAR_COUNT;
 	else  graphBarCount = barCount;
+
+
+	//m_dArray = new double[graphBarCount];
+	//resetGraphData();
+	TRACE("CSpectrumGraphCtrl::setGraphBarCount Bar Count changed to %d bars and data array adjusted accordingly\n", graphBarCount);
 }
 
 
@@ -143,7 +196,6 @@ void CSpectrumGraphCtrl::setGraphBarCount(int barCount)
 bool CSpectrumGraphCtrl::startDisplayRefresh()
 {
 	return TRUE;
-
 }
 
 void CSpectrumGraphCtrl::stopDisplayRefresh()
@@ -189,7 +241,13 @@ void CSpectrumGraphCtrl::displayRefreshThread()
 			case WAIT_OBJECT_0 + 0:
 				//TRACE(" CSpectrumGraphCtrl::runThread() First event was signaled..\n");
 
-				loadData();
+				//loadData();
+				cloneSignalData();
+				
+				inputimag = zero_reals(inputimag, SIG_LENGTH);
+				performFFT();
+
+
 				Invalidate(TRUE);
 				break;
 
@@ -213,16 +271,45 @@ void CSpectrumGraphCtrl::setRefreshEvent()
 }
 
 
-// This method puts dummy data for now...
-// The result of an FFT should be used here instead...
-void CSpectrumGraphCtrl::loadData()
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//							 FFT Related Functions sections
+
+void CSpectrumGraphCtrl::cloneSignalData()
+
+{
+
+	float* dataBuffer = reinterpret_cast<float*>(rawDataBufferPtr);
+
+	for (int i = 0; i < 256; i++)
+	{
+		// The orginial signal is stereo, each sample has its left and right data back to back.
+		// So data copied by the WASAPIRenderer in the array dataBuffer is 2 times bigger than it should be
+		inputreal[i] = dataBuffer[i*2];   // Bring the values from the Generated Signal in Tone.h file...
+	}
+
+
+}
+
+
+double* CSpectrumGraphCtrl::zero_reals(double* targetBuffer, int n)
+{
+
+	for (int i = 0; i < n; i++)
+		targetBuffer[i] = 0.0;
+
+	return targetBuffer;
+}
+
+
+void CSpectrumGraphCtrl::performFFT()
 {
 	
-	for (int i = 0; i < graphBarCount; i++)
-	{
-		m_dArray[i] = (rand() / (double)RAND_MAX);
-	}
-	
+	Fft_transform(inputreal, inputimag, SIG_LENGTH);
+	// Get the power of the frequencies distribution, to view it in a graps
+	get_output_mag(inputreal, inputimag, outputMag, SIG_LENGTH);
 }
 
 

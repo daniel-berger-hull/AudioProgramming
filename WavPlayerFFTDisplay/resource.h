@@ -20,11 +20,12 @@
 #define IDC_WAV_FILE_EDIT               1030
 #define IDC_GRAPH_STATIC                1031
 #define IDC_SPECTRUM_GRAPH              1032
-#define IDC_EVENT_SET_BUTTON            1033
 #define IDC_SIMPLE_FILTER_RADIO         1037
 #define IDC_RUNNING_AVERAGE_FILTER_RADIO 1038
 #define IDC_SMOOTH_OPERATOR_FILTER_RADIO 1039
 #define IDC_FILTER_TYPE_GROUP           1040
+#define IDC_SIMPLE_FILTER_RADIO2        1041
+#define IDC_NO_FILTER_RADIO             1041
 
 // Next default values for new objects
 // 

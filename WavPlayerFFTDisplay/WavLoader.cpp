@@ -174,11 +174,26 @@ int WavLoader::open(const char* fileName)
         TRACE("Allocation of left Buffer failed!\n");
     }
       
-    rightChannelBuffer = new int16_t[bufferSize];
-    if (rightChannelBuffer == NULL)
+    if (isStereo())
     {
-      TRACE("Allocation of left Buffer failed!\n");
+        rightChannelBuffer = new int16_t[bufferSize];
+        if (rightChannelBuffer == NULL)
+        {
+            TRACE("Allocation of left Buffer failed!\n");
+        }
     }
+    else
+    {
+        // In case there may be a previous wav load of a stereo file,
+        // the right channel should currently be allocated and have values to be deleted
+        if (rightChannelBuffer != NULL) delete rightChannelBuffer;
+       rightChannelBuffer = NULL; 
+    }
+
+    
+
+
+    //TRACE("WavLoader::open leftChannelBuffer=%x ,rightChannelBuffer=%x\n", leftChannelBuffer, rightChannelBuffer);
 
 
 //    for (int i = 0; i < 100; i++)
@@ -188,17 +203,30 @@ int WavLoader::open(const char* fileName)
     int16_t minRightValue = 0;
     int16_t maxRightValue = 0;
 
+
+
+
+
+
+
     for (i = 0; i < bufferSize; i++)
 
     {
         fread(&leftChannelData, sizeof(int16_t), 1, fptr);
-        fread(&rightChannelData, sizeof(int16_t), 1, fptr);
-
         leftChannelBuffer[i] = leftChannelData;
-        rightChannelBuffer[i] = rightChannelData;
 
+        if (isStereo())
+        {
+            fread(&rightChannelData, sizeof(int16_t), 1, fptr);
+            rightChannelBuffer[i] = rightChannelData;
+        }
+            
         if (i < 100)
-            TRACE(" %d     %d\n", rightChannelData, leftChannelData);
+        {
+            if (isStereo()) TRACE(" %d     %d\n", leftChannelData, rightChannelData);
+            else TRACE(" %d\n", leftChannelData);
+        }
+            
 
         if (leftChannelData < minLeftValue) minLeftValue = leftChannelData;
         if (leftChannelData > maxLeftValue) maxLeftValue = leftChannelData;
@@ -220,7 +248,6 @@ int WavLoader::open(const char* fileName)
 
 void WavLoader::dislayFileInfo()
 {
-
 
     if (wavFileFormatSubHeader.audioFormat = AUDIO_FORMAT_LINEAR_QUANTIZATION)
         TRACE("\tAudio Format is 1 (Linear Quantization, no compression used)\n");
@@ -250,8 +277,10 @@ void WavLoader::dislayFileInfo()
     TRACE("\tBits per sample: %d\n", wavFileFormatSubHeader.bytePerSample);
     TRACE("\tBlock Align:\t %d\n", wavFileFormatSubHeader.blockAlign);
     TRACE("\tByte Rate:\t %d Bytes/Sec\n", wavFileFormatSubHeader.byteRate);
-
     TRACE("\n\tData Chunk Size: %d\n", wavFileDataHeader.chunkSize);
+
+
+
 
 }
 

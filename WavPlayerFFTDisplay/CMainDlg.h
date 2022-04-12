@@ -30,10 +30,13 @@
 #define HARMONIC_MAX_LEVEL				  100
 
 
-#define  TEST_WAVE_FILENAME   "D:/data/workspace/C++/DigitalSignalProcessing/FFT/FreeSmallFFT/Resources/WAV/TestSound.wav"
+//#define  TEST_WAVE_FILENAME   "D:/data/workspace/C++/DigitalSignalProcessing/FFT/FreeSmallFFT/Resources/WAV/Alarm06.wav"
+#define  TEST_WAVE_FILENAME   "D:/data/workspace/C++/DigitalSignalProcessing/FFT/FreeSmallFFT/Resources/WAV/NoiseStereo.wav"
 
 
 
+
+#define     FFT_FREQUENCY_POINTS			 100
 
 
 
@@ -107,11 +110,16 @@ protected:
 	bool PickDevice(IMMDevice** DeviceToUse, bool* IsDefaultDevice, ERole* DefaultDeviceRole);
 	LPWSTR CMainDlg::GetDeviceName(IMMDeviceCollection* DeviceCollection, UINT DeviceIndex);
 	    
-	int loadSignal(int channelCount,
-		CWASAPIRenderer::RenderSampleType SampleType,
-		int samplesPerSecond,
-		int frameSize,
-		int bufferSizeInBytes, int totNumberOfBuffers);
+	int loadSignal( int SoundCardChannelCount,
+					int wavFileChannelCount,
+					CWASAPIRenderer::RenderSampleType SampleType,
+					int samplesPerSecond,
+					int frameSize,
+					int bufferSizeInBytes, int totNumberOfBuffers,
+					int filterType);
+
+
+
 
 
 	bool playTone();
@@ -167,14 +175,11 @@ public:
 	afx_msg void OnBnClickedLoadWavFile();
 	afx_msg void OnBnClickedClearWavFileButtonValue();
 
+
+	afx_msg void OnBnClickedNoFilterButton();
 	afx_msg void OnBnClickedSimpleFilterButton();
 	afx_msg void OnBnClickedRunningAverageFilterButton();
 	afx_msg void OnBnClickedSmoothOperatorFilterButton();
-
-
-
 	afx_msg void OnEnChangeWavFileEdit();
 
-	afx_msg void OnBnClickedSetEventButton();
-	
 };
