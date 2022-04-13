@@ -29,11 +29,101 @@ template<typename T> T Convert(double Value);
 #define SIMPLE_FILTER						 1
 #define RUNNING_AVERAGE_FILTER				 2
 #define SMOOTH_OPERATOR_FILTER				 3
+#define CURIOUS_FILTER                       4
 
 #define MONO_CHANNEL                         1
 #define STEREO_CHANNEL                       2
 #define LEFT_CHANNEL                         0
 #define RIGHT_CHANNEL                        1
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  This filter is a modification of the a filter from the Curiores web site at:
+//       https://github.com/curiores/ArduinoTutorials/blob/main/LowPass2.0/LowPass2.0.ino
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <int order> // order is 1 or 2
+class LowPass
+{
+private:
+    float a[order];
+    float b[order + 1];
+    float omega0;
+    float dt;
+    bool adapt;
+    float tn1 = 0;
+    float x[order + 1]; // Raw values
+    float y[order + 1]; // Filtered values
+
+public:
+    LowPass(float f0, float fs, bool adaptive) {
+        // f0: cutoff frequency (Hz)
+        // fs: sample frequency (Hz)
+        // adaptive: boolean flag, if set to 1, the code will automatically set
+        // the sample frequency based on the time history.
+
+        omega0 = 6.28318530718 * f0;
+        dt = 1.0 / fs;
+        adapt = adaptive;
+        tn1 = -dt;
+        for (int k = 0; k < order + 1; k++) {
+            x[k] = 0;
+            y[k] = 0;
+        }
+        setCoef();
+    }
+
+    void setCoef() {
+        /* if (adapt) {
+             float t = micros() / 1.0e6;
+             dt = t - tn1;
+             tn1 = t;
+         }*/
+
+        float alpha = omega0 * dt;
+        if (order == 1) {
+            a[0] = -(alpha - 2.0) / (alpha + 2.0);
+            b[0] = alpha / (alpha + 2.0);
+            b[1] = alpha / (alpha + 2.0);
+        }
+        if (order == 2) {
+            float c1 = 2 * sqrt(2) / alpha;
+            float c2 = 4 / (alpha * alpha);
+            float denom = 1.0 + c1 + c2;
+            b[0] = 1.0 / denom;
+            b[1] = 2.0 / denom;
+            b[2] = b[0];
+            a[0] = -(2.0 - 2.0 * c2) / denom;
+            a[1] = -(1.0 - c1 + c2) / (1.0 + c1 + c2);
+        }
+    }
+
+    float filt(float xn) {
+        // Provide me with the current raw value: x
+        // I will give you the current filtered value: y
+        if (adapt) {
+            setCoef(); // Update coefficients if necessary      
+        }
+        y[0] = 0;
+        x[0] = xn;
+        // Compute the filtered values
+        for (int k = 0; k < order; k++) {
+            y[0] += a[k] * y[k + 1] + b[k] * x[k];
+        }
+        y[0] += b[order] * x[order];
+
+        // Save the historical values
+        for (int k = order; k > 0; k--) {
+            y[k] = y[k - 1];
+            x[k] = x[k - 1];
+        }
+
+        // Return the filtered value    
+        return y[0];
+    }
+};
+
+
 
 
 struct  GenParams
@@ -51,6 +141,7 @@ struct  GenParams
     int16_t* leftChannelBuffer;
     int16_t* rightChannelBuffer; 
     int filteringType;
+    int cutoffFrequency;
 };
 
 
@@ -82,7 +173,6 @@ void LoadWavSamples(GenParams* params)
     float previousFilteredValue[2];
     
 
-
     for (int i = 0; i < params->SoundCardChannelCount; i++)
     {
         channelValues[i] = currentChannelValues[i] = 0.0f;
@@ -104,6 +194,12 @@ void LoadWavSamples(GenParams* params)
     //float previousRightValue = ((float)*rightChannelBuffer / 32767.0f);
    /* float currentLeftValue = 0.0f;
     float currentRightValue = 0.0f;*/
+
+
+     
+
+     LowPass<2> lp(params->cutoffFrequency, 44100, true);
+
 
 
 
@@ -133,6 +229,45 @@ void LoadWavSamples(GenParams* params)
                 dataBuffer[i] = Convert<T>(channelValues[LEFT_CHANNEL]);
                 dataBuffer[i + 1] = Convert<T>(channelValues[LEFT_CHANNEL]);
             }
+        }
+        else if (params->filteringType == CURIOUS_FILTER)
+        {
+
+              
+
+
+             float current = ((float)*params->leftChannelBuffer / 32767.0f);
+             float filtered = lp.filt(current);
+
+//              channelValues[LEFT_CHANNEL] = amplitude * ((float)*params->leftChannelBuffer / 32767.0f);
+             channelValues[LEFT_CHANNEL] = amplitude * filtered;
+
+          
+
+              dataBuffer[i] = Convert<T>(channelValues[LEFT_CHANNEL]);
+              dataBuffer[i + 1] = Convert<T>(channelValues[LEFT_CHANNEL]);
+              params->leftChannelBuffer++;
+
+
+
+            /*  if (params->WavFileChannelCount == MONO_CHANNEL)
+              {
+                  channelValues[LEFT_CHANNEL] = amplitude * ((float)*params->leftChannelBuffer / 32767.0f);
+
+                  dataBuffer[i] = Convert<T>(channelValues[LEFT_CHANNEL]);
+                  dataBuffer[i + 1] = Convert<T>(channelValues[LEFT_CHANNEL]);
+                  params->leftChannelBuffer++;
+              }
+              else if (params->WavFileChannelCount == STEREO_CHANNEL)
+              {
+                  channelValues[LEFT_CHANNEL] = amplitude * ((float)*params->leftChannelBuffer / 32767.0f);
+                  dataBuffer[i] = Convert<T>(channelValues[LEFT_CHANNEL]);
+                  channelValues[RIGHT_CHANNEL] = amplitude * ((float)*params->rightChannelBuffer / 32767.0f);
+                  dataBuffer[i + 1] = Convert<T>(channelValues[RIGHT_CHANNEL]);
+                  params->leftChannelBuffer++;
+                  params->rightChannelBuffer++;
+              }*/
+
         }
         else
         {

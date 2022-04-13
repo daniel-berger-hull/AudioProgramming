@@ -50,13 +50,17 @@ void CMainDlg::DoDataExchange(CDataExchange* pDX)
 
 
 	DDX_Control(pDX, IDC_MASTER_VOLUME_SLIDER, m_masterVolumeSlider);
+	DDX_Control(pDX, IDC_CUTOFF_FILTER_FREQUENCY_SLIDER, m_cutoffFilterFreqSlider);
 
-	
 	DDX_Control(pDX, IDC_WAV_FILE_EDIT, m_wavFileNameEdit);
 	DDX_Control(pDX, IDC_LOAD_WAV_FILE, m_loadWavFileButton);
 	DDX_Control(pDX, IDC_CLEAR_WAV_FILE_BUTTON_VALUE, m_clearWavFileButton);
 
 	DDX_Text(pDX, IDC_MASTER_VOLUME_LABEL, m_masterVolumeValue);
+	DDX_Text(pDX, IDC_CUTOFF_FILTER_FREQ_LABEL, m_cutoffFilterFreqValue);
+
+
+	
 
 
 	DDX_Control(pDX, IDC_SPECTRUM_GRAPH, m_graph);
@@ -70,6 +74,8 @@ BEGIN_MESSAGE_MAP(CMainDlg, CDialogEx)
 	ON_WM_CTLCOLOR()
 	ON_WM_QUERYDRAGICON()
 	ON_WM_HSCROLL()
+	ON_WM_VSCROLL()
+
 
 
 	ON_BN_CLICKED(IDC_PLAY_BUTTON, &CMainDlg::OnBnClickedPlayButton)
@@ -83,6 +89,9 @@ BEGIN_MESSAGE_MAP(CMainDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_SIMPLE_FILTER_RADIO, &CMainDlg::OnBnClickedSimpleFilterButton)
 	ON_BN_CLICKED(IDC_RUNNING_AVERAGE_FILTER_RADIO, &CMainDlg::OnBnClickedRunningAverageFilterButton)
 	ON_BN_CLICKED(IDC_SMOOTH_OPERATOR_FILTER_RADIO, &CMainDlg::OnBnClickedSmoothOperatorFilterButton)
+	ON_BN_CLICKED(IDC_CURIOUS_FILTER_RADIO, &CMainDlg::OnBnClickedCuriousFilterButton)
+
+	
 
 	
 END_MESSAGE_MAP()
@@ -108,6 +117,13 @@ void CMainDlg::setupSliders()
 	m_masterVolumeSlider.SetRange(0, 100);
 	m_masterVolumeSlider.SetPos(100);
 	m_masterVolumeValue.Format(_T("%d"), 100);
+
+
+	m_cutoffFilterFreqSlider.SetRange(0, 10000);
+	m_cutoffFilterFreqSlider.SetPos(100);
+	m_cutoffFilterFreqValue.Format(_T("%d"), 100);
+
+	
 }
 
 
@@ -136,20 +152,8 @@ BOOL CMainDlg::OnInitDialog()
 
 
 	CButton* noFilterRadioButton = (CButton*)GetDlgItem(IDC_NO_FILTER_RADIO);
-	//CButton* simpleFilterRadioButton = (CButton*)GetDlgItem(IDC_SIMPLE_FILTER_RADIO);
-	//CButton* runningAverageFilterRadioButton = (CButton*)GetDlgItem(IDC_RUNNING_AVERAGE_FILTER_RADIO);
-	//CButton* smoothOperatorFilterRadioButton = (CButton*)GetDlgItem(IDC_SMOOTH_OPERATOR_FILTER_RADIO);
-
-
 
 	noFilterRadioButton->SetCheck(1);
-
-	//noFilterRadioButton->SendMessage(BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)sineBitmap);
-	//simpleFilterRadioButton->SendMessage(BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)sawBitmap);
-	//runningAverageFilterRadioButton->SendMessage(BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)triangleBitmap);
-	//smoothOperatorFilterRadioButton->SendMessage(BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)squareBitmap);
-	
-
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -166,20 +170,39 @@ HBRUSH CMainDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 		
 		if (pWnd->GetDlgCtrlID() == IDC_MASTER_VOLUME_SLIDER  )
 		{
-			//pDC->SetTextColor(RGB(255, 255, 255));
-
+			pDC->SetTextColor(RGB(255, 255, 255));
 			pDC->SetBkMode(TRANSPARENT);
 			return m_backgroundBrush;
 		}
-
-		if ( pWnd->GetDlgCtrlID() == IDC_MASTER_VOLUME_LABEL )
+		else if ( pWnd->GetDlgCtrlID() == IDC_CUTOFF_FILTER_FREQUENCY_SLIDER)
 		{
 			pDC->SetTextColor(RGB(255, 255, 255));
 			pDC->SetBkMode(TRANSPARENT);
 			return m_backgroundBrush; 
 		}
 
-		if (pWnd->GetDlgCtrlID() == IDC_GROUP_VOLUME ||
+		else if (pWnd->GetDlgCtrlID() == IDC_CUTOFF_FILTER_FREQ_LABEL ||
+				 pWnd->GetDlgCtrlID() == IDC_CUTOFF_FILTER_FREQ_HERTZ_LABEL ||
+				 pWnd->GetDlgCtrlID() == IDC_CUTOFF_FILTER_FREQUENCY_TITLE ||
+ 				 pWnd->GetDlgCtrlID() == IDC_MASTER_VOLUME_LABEL	)
+		{
+			pDC->SetTextColor(RGB(255, 255, 255));
+			pDC->SetBkMode(TRANSPARENT);
+			return m_backgroundBrush;
+		}
+
+		/*DDX_Control(pDX, IDC_CUTOFF_FILTER_FREQUENCY_SLIDER, m_cutoffFilterFreqSlider);
+
+		DDX_Control(pDX, IDC_WAV_FILE_EDIT, m_wavFileNameEdit);
+		DDX_Control(pDX, IDC_LOAD_WAV_FILE, m_loadWavFileButton);
+		DDX_Control(pDX, IDC_CLEAR_WAV_FILE_BUTTON_VALUE, m_clearWavFileButton);
+
+		DDX_Text(pDX, IDC_MASTER_VOLUME_LABEL, m_masterVolumeValue);
+		DDX_Text(pDX, IDC_CUTOFF_FILTER_FREQ_LABEL, m_cutoffFilterFreqValue);*/
+
+
+
+		else if (pWnd->GetDlgCtrlID() == IDC_GROUP_VOLUME ||
 			pWnd->GetDlgCtrlID() == IDC_WAV_FILE_GROUP ||
 			pWnd->GetDlgCtrlID() == IDC_WAVE_TYPE_STATIC  )
 		{
@@ -188,11 +211,12 @@ HBRUSH CMainDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 			return m_backgroundBrush;
 		}
 
-		if (pWnd->GetDlgCtrlID() == IDC_FILTER_TYPE_GROUP ||
+		else if (pWnd->GetDlgCtrlID() == IDC_FILTER_TYPE_GROUP ||
 			pWnd->GetDlgCtrlID() == IDC_NO_FILTER_RADIO ||
 			pWnd->GetDlgCtrlID() == IDC_SIMPLE_FILTER_RADIO ||
 			pWnd->GetDlgCtrlID() == IDC_RUNNING_AVERAGE_FILTER_RADIO ||
-			pWnd->GetDlgCtrlID() == IDC_SMOOTH_OPERATOR_FILTER_RADIO)
+			pWnd->GetDlgCtrlID() == IDC_SMOOTH_OPERATOR_FILTER_RADIO ||
+			pWnd->GetDlgCtrlID() == IDC_CURIOUS_FILTER_RADIO)
 		{
 			pDC->SetTextColor(RGB(255, 255, 255));
 			pDC->SetBkMode(TRANSPARENT);
@@ -276,6 +300,22 @@ void CMainDlg::OnBnClickedStopButton()
 
 void CMainDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
+	if (pScrollBar == (CScrollBar*)&m_cutoffFilterFreqSlider)
+	{
+		int value = m_cutoffFilterFreqSlider.GetPos();
+	
+		cutoffFilterFrequency = value;
+		m_cutoffFilterFreqValue.Format(_T("%d"), value);
+		UpdateData(FALSE);
+	}
+	else {
+		CDialog::OnHScroll(nSBCode, nPos, pScrollBar);
+	}
+}
+
+
+void CMainDlg::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+{
 	if (pScrollBar == (CScrollBar*)&m_masterVolumeSlider)
 	{
 		int value = m_masterVolumeSlider.GetPos();
@@ -285,7 +325,7 @@ void CMainDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 		UpdateData(FALSE);
 	}
 	else {
-		CDialog::OnHScroll(nSBCode, nPos, pScrollBar);
+		CDialog::OnVScroll(nSBCode, nPos, pScrollBar);
 	}
 }
 
@@ -357,6 +397,12 @@ void CMainDlg::OnBnClickedSmoothOperatorFilterButton()
 {
 	filterType = SMOOTH_OPERATOR_FILTER;
 }
+
+void CMainDlg::OnBnClickedCuriousFilterButton()
+{
+	filterType = CURIOUS_FILTER;
+}
+
 
 
 
@@ -693,7 +739,7 @@ int CMainDlg::loadSignal(int SoundCardChannelCount,
 						int samplesPerSecond,
 						int frameSize,
 						int bufferSizeInBytes, int totNumberOfBuffers, 
-						int filterType)
+						int filterType, int cutoffFrequency)
 {
 	RenderBuffer** currentBufferTail = &renderQueue;
 
@@ -703,7 +749,9 @@ int CMainDlg::loadSignal(int SoundCardChannelCount,
 	genParams.WavFileChannelCount = wavFileChannelCount;
 	genParams.SamplesPerSecond = samplesPerSecond;
 	genParams.filteringType = filterType;
+	genParams.cutoffFrequency = cutoffFrequency;
 
+	
 	size_t i;
 	int currentBufferIndex = 0;
 	int16_t* leftBufferPtr = wavLoader->getLeftChannelBuffer();
@@ -829,7 +877,8 @@ DWORD WINAPI CMainDlg::PlayToneThreadProc(LPVOID lpParam)
 			renderer->FrameSize(),     
 			renderBufferSizeInBytes,
 			renderBufferCount,
-			filterType);
+			filterType,
+			cutoffFilterFrequency);
 
 		TRACE("Signal generated and will start the CWASAPIRenderer thread.\n");
 

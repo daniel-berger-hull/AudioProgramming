@@ -72,8 +72,11 @@ protected:
 	CEdit m_wavFileNameEdit;
 
 	CSliderCtrl m_masterVolumeSlider;
+	CSliderCtrl m_cutoffFilterFreqSlider;
 
 	CString m_masterVolumeValue;
+	CString m_cutoffFilterFreqValue;
+
 
 	CString m_wavFileNameValue;
 
@@ -116,7 +119,7 @@ protected:
 					int samplesPerSecond,
 					int frameSize,
 					int bufferSizeInBytes, int totNumberOfBuffers,
-					int filterType);
+					int filterType, int cutoffFrequency);
 
 
 
@@ -145,6 +148,7 @@ protected:
 	int  TargetFrequency = 220;
 	int  TargetLatency = 50;
 	int  TargetDurationInSec = 2;
+	int  cutoffFilterFrequency = 100;
 	bool ShowHelp;
 	bool UseConsoleDevice;
 	bool UseCommunicationsDevice;
@@ -169,6 +173,7 @@ public:
 	afx_msg void OnBnClickedStopButton();
 	
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	afx_msg int  OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnDestroy();
 	
@@ -180,6 +185,7 @@ public:
 	afx_msg void OnBnClickedSimpleFilterButton();
 	afx_msg void OnBnClickedRunningAverageFilterButton();
 	afx_msg void OnBnClickedSmoothOperatorFilterButton();
+	afx_msg void OnBnClickedCuriousFilterButton();
 	afx_msg void OnEnChangeWavFileEdit();
 
 };
