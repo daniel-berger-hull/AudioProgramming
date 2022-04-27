@@ -41,6 +41,8 @@
 
 
 
+
+
 // CMainDlg dialog
 class CMainDlg : public CDialogEx
 {
@@ -166,6 +168,8 @@ protected:
 
 
 
+	
+
 public:
 	afx_msg void OnNMCustomdrawSineWaveRadio(NMHDR* pNMHDR, LRESULT* pResult);
 
@@ -187,5 +191,8 @@ public:
 	afx_msg void OnBnClickedSmoothOperatorFilterButton();
 	afx_msg void OnBnClickedCuriousFilterButton();
 	afx_msg void OnEnChangeWavFileEdit();
+
+
+	//afx_msg void OnBnClickedTestAverageButton();
 
 };

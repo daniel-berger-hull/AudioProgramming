@@ -126,6 +126,66 @@ public:
 
 
 
+class AverageFilter
+{
+public:
+    AverageFilter()
+    {
+        previousValues = new float[averageSize];
+        resetValues();
+    }
+
+    AverageFilter(int size)
+    {
+        if (size > 1 && size < 500)
+            averageSize = size;
+        else
+            averageSize = 3;
+
+        previousValues = new float[averageSize];
+
+        resetValues();
+    }
+
+    ~AverageFilter()
+    {
+        if (previousValues != nullptr)  delete previousValues;
+    }
+
+
+    int getAverageSize() { return averageSize; }
+
+    float filter(float currentValue)
+    {
+        float sum = 0.0f;
+        float result = 0.0f;
+
+        // Move the previous values down, and  will place the latest values (currentValue)
+        // at the end of the array previousValues;
+        for (int i = 0; i < averageSize - 1; i++)
+            previousValues[i] = previousValues[i + 1];
+
+        previousValues[averageSize - 1] = currentValue;
+
+        for (int i = 0; i < averageSize; i++)
+            sum += previousValues[i];
+
+        result = sum / (float)averageSize;
+
+        return result;
+    }
+
+private:
+    float* previousValues = nullptr;
+    int averageSize = 1;
+
+    void resetValues()
+    {
+        for (int i = 0; i < averageSize; i++)   previousValues[i] = 0.0f;
+    }
+};
+
+
 struct  GenParams
 {
     float      masterVolume;
@@ -145,20 +205,27 @@ struct  GenParams
 };
 
 
+AverageFilter averageFilter = AverageFilter(10);
 
 
 
 //
-//  Generate samples which represent a sine wave that fits into the specified buffer.  
-//
+//  Load samples from a pre-existing signal array and apply the filtering if required
+// 
 //  T:  Type of data holding the sample (short, int, byte, float)
 //   GenParams struct contains the following info:
 //      Buffer - Buffer to hold the samples
 //      BufferLength - Length of the buffer.
-//      ChannelCount - Number of channels per audio frame.
+//      SoundCardChannelCount - Number of channels available on the audio device
+//      WavFileChannelCount - Number of channel available in the input signal (MONO vs STEREO)
+//   Note: SoundCardChannelCount and WavFileChannelCount are similar but totally independent.
+//         The first is about what you can physically use and available on the Sound Card (most cars have are stereo dough),
+//         while    WavFileChannelCount is related to the info stored in the Wav File loaded by the program 
 //      SamplesPerSecond - Samples/Second for the output data.
 //      InitialTheta - Initial theta value - start at 0, modified in this function.
-//
+//      masterVolume - The overal volume  to apply to the output 0 to 100 (int value)
+//      leftChannelBuffer & rightChannelBuffer - the respective destination array of output signal, for each channel
+//      cutoffFrequency - If a filter is used,  this is the frequency where the filters should start to filter the signal's frequencies
 template <typename T>
 void LoadWavSamples(GenParams* params)
 {
@@ -232,17 +299,10 @@ void LoadWavSamples(GenParams* params)
         }
         else if (params->filteringType == CURIOUS_FILTER)
         {
-
-              
-
-
              float current = ((float)*params->leftChannelBuffer / 32767.0f);
              float filtered = lp.filt(current);
 
-//              channelValues[LEFT_CHANNEL] = amplitude * ((float)*params->leftChannelBuffer / 32767.0f);
              channelValues[LEFT_CHANNEL] = amplitude * filtered;
-
-          
 
               dataBuffer[i] = Convert<T>(channelValues[LEFT_CHANNEL]);
               dataBuffer[i + 1] = Convert<T>(channelValues[LEFT_CHANNEL]);
@@ -269,6 +329,53 @@ void LoadWavSamples(GenParams* params)
               }*/
 
         }
+        else if (params->filteringType == RUNNING_AVERAGE_FILTER)
+          {
+         
+
+            ////////////////////////////////////////////////////////////////////////
+                  if (params->WavFileChannelCount == MONO_CHANNEL)
+                  {
+
+                      float currentVal = amplitude * ((float)*params->leftChannelBuffer / 32767.0f);
+                      float filtered = averageFilter.filter(currentVal);
+
+
+
+                      //channelValues[LEFT_CHANNEL] = amplitude * ((float)*params->leftChannelBuffer / 32767.0f);
+                      //dataBuffer[i] = Convert<T>(channelValues[LEFT_CHANNEL]);
+                      //dataBuffer[i + 1] = Convert<T>(channelValues[LEFT_CHANNEL]);
+
+
+                      dataBuffer[i] = Convert<T>(filtered);
+                      dataBuffer[i + 1] = Convert<T>(filtered);
+
+
+                      params->leftChannelBuffer++;
+                  }
+                  else if (params->WavFileChannelCount == STEREO_CHANNEL)
+                  {
+                      float currentVal = amplitude * ((float)*params->leftChannelBuffer / 32767.0f);
+                      float filtered = averageFilter.filter(currentVal);
+                      dataBuffer[i] = Convert<T>(filtered);
+                      dataBuffer[i + 1] = Convert<T>(filtered);
+                      
+                      //channelValues[LEFT_CHANNEL] = amplitude * ((float)*params->leftChannelBuffer / 32767.0f);
+                      //dataBuffer[i] = Convert<T>(channelValues[LEFT_CHANNEL]);
+                      //channelValues[RIGHT_CHANNEL] = amplitude * ((float)*params->rightChannelBuffer / 32767.0f);
+                      //dataBuffer[i + 1] = Convert<T>(channelValues[RIGHT_CHANNEL]);
+                      params->leftChannelBuffer++;
+                      params->rightChannelBuffer++;
+                  }
+
+
+                  //////////////////////////////////////////////////////////////////////////////
+
+
+
+
+              
+          }
         else
         {
             if (params->WavFileChannelCount == MONO_CHANNEL)

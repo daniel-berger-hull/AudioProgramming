@@ -26,6 +26,8 @@ typedef struct PlayThreadParams {
 
 
 
+
+
 //WaveParams  currentWaveParams;
 
 CMainDlg::CMainDlg(CWnd* pParent /*=nullptr*/)
@@ -59,10 +61,6 @@ void CMainDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_MASTER_VOLUME_LABEL, m_masterVolumeValue);
 	DDX_Text(pDX, IDC_CUTOFF_FILTER_FREQ_LABEL, m_cutoffFilterFreqValue);
 
-
-	
-
-
 	DDX_Control(pDX, IDC_SPECTRUM_GRAPH, m_graph);
 
 }
@@ -92,10 +90,7 @@ BEGIN_MESSAGE_MAP(CMainDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CURIOUS_FILTER_RADIO, &CMainDlg::OnBnClickedCuriousFilterButton)
 
 	
-
-	
 END_MESSAGE_MAP()
-
 
 // CMainDlg message handlers
 
@@ -402,7 +397,6 @@ void CMainDlg::OnBnClickedCuriousFilterButton()
 {
 	filterType = CURIOUS_FILTER;
 }
-
 
 
 
