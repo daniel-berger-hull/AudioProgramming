@@ -1,0 +1,52 @@
+This Weekend:
+
+A) Understand the Fc of the equations of the Windowed-Sinc (p285)
+    This Fc is a fraction (i.e: 0.1 works perfectly WavPlayerFFTDisplay) and I would expect a real
+    cut of frequency here (i.e  500Hz)
+    
+    Is this in logarithm?
+
+B) Have a better evaluation of the real cutoff frequency of the Windowed-Sinc in WavPlayerFFTDisplay
+
+   Yes, there is now something in the project that works,
+   But I would need a better evaluation of where exactly the frequencies are starting to be cut of by the filter.
+
+1 -  Validate if the tone.h is producing the exact frequency
+
+   for instance, if it produce a 440Hz sine wave, is it the case?
+    You  may use first the project RenderSharedMFC, as it already have a sine wave signal in the GUI.
+    
+
+
+2 - Implement a mouse over for the CSpectrumGraphCtrl
+
+    If I over a specific column, I would like to see at least the bin number (of the FFT),
+    or utimately, the frequency represented by a specific bar
+    
+
+3 - Implement de summation of all FFT Bins...
+
+   The CSpectrumGraphCtrl (via the Fft_transform function in fft-real-pair.cpp file) gives only an idea of the frequencies, but since it changes every mSecs,
+   we can't have an exact idea of the weight of all the frequencies.
+   
+   The goal would be to have an array ('magnitudesSums')for all the values that are output, and for every call to CSpectrumGraphCtrl::performFFT()
+   (which also is using the get_output_mag method to get the values to display), add all the values returned use this array 
+   
+   
+   
+   CSpectrumGraphCtrl::performFFT() -->  Fft_transform(inputreal, inputimag, SIG_LENGTH);		--> Display the value in the graph
+   					 get_output_mag(inputreal, inputimag, outputMag, SIG_LENGTH);
+   					 								--> Add all the values of 'inputreal' into the magnitudesSums
+   					 								
+ 3B - Have a Graph also of the magnitude sums found in #3
+ 
+ 
+ 4 - Have a graph representation of the kernel filter
+   
+   We can only see the impact of the filter once a convolution kernal-signal is done and the output is draw in a CSpectrumGraphCtrl.
+   But having a like in p288 - Fig 16-2 (graph b) of the Guide_to_Digital_Signal_Process.pdf would be better.
+   
+   Solution: Have a signals of value of 1.0f only 
+             Have a convolution with the kernel to be drawn
+             The results of the convolution should give the data to draw a graph.
+      
