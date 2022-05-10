@@ -62,7 +62,7 @@ void CMainDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_CUTOFF_FILTER_FREQ_LABEL, m_cutoffFilterFreqValue);
 
 	DDX_Control(pDX, IDC_SPECTRUM_GRAPH, m_graph);
-
+	
 }
 
 BEGIN_MESSAGE_MAP(CMainDlg, CDialogEx)
@@ -75,7 +75,6 @@ BEGIN_MESSAGE_MAP(CMainDlg, CDialogEx)
 	ON_WM_VSCROLL()
 
 
-
 	ON_BN_CLICKED(IDC_PLAY_BUTTON, &CMainDlg::OnBnClickedPlayButton)
 	ON_BN_CLICKED(IDC_STOP_BUTTON, &CMainDlg::OnBnClickedStopButton)
 	ON_BN_CLICKED(IDC_LOAD_WAV_FILE, &CMainDlg::OnBnClickedLoadWavFile)
@@ -85,11 +84,12 @@ BEGIN_MESSAGE_MAP(CMainDlg, CDialogEx)
 	
 	ON_BN_CLICKED(IDC_NO_FILTER_RADIO, &CMainDlg::OnBnClickedNoFilterButton)
 	ON_BN_CLICKED(IDC_SIMPLE_FILTER_RADIO, &CMainDlg::OnBnClickedSimpleFilterButton)
-	ON_BN_CLICKED(IDC_RUNNING_AVERAGE_FILTER_RADIO, &CMainDlg::OnBnClickedRunningAverageFilterButton)
-	ON_BN_CLICKED(IDC_SMOOTH_OPERATOR_FILTER_RADIO, &CMainDlg::OnBnClickedSmoothOperatorFilterButton)
+	ON_BN_CLICKED(IDC_CONVOLUTION_LOW_PASS_FILTER_RADIO, &CMainDlg::OnBnClickedConvolutionLowPassFilterButton)
+	ON_BN_CLICKED(IDC_SMOOTH_OPERATOR_FILTER_RADIO, &CMainDlg::OnBnClickedAverageFilterButton)
 	ON_BN_CLICKED(IDC_CURIOUS_FILTER_RADIO, &CMainDlg::OnBnClickedCuriousFilterButton)
 
 	
+
 END_MESSAGE_MAP()
 
 // CMainDlg message handlers
@@ -117,6 +117,10 @@ void CMainDlg::setupSliders()
 	m_cutoffFilterFreqSlider.SetRange(0, 10000);
 	m_cutoffFilterFreqSlider.SetPos(100);
 	m_cutoffFilterFreqValue.Format(_T("%d"), 100);
+
+	m_cutoffFilterFreqSlider.EnableWindow(FALSE);
+
+
 
 	
 }
@@ -381,21 +385,29 @@ void CMainDlg::OnBnClickedNoFilterButton()
 void CMainDlg::OnBnClickedSimpleFilterButton()
 {
 	filterType = SIMPLE_FILTER;
+	m_cutoffFilterFreqSlider.EnableWindow(FALSE);
+
 }
 
-void CMainDlg::OnBnClickedRunningAverageFilterButton()
+void CMainDlg::OnBnClickedConvolutionLowPassFilterButton()
 {
-	filterType = RUNNING_AVERAGE_FILTER;
+	filterType = CONVOLUTION_LOW_PASS_FILTER;
+	m_cutoffFilterFreqSlider.EnableWindow(TRUE);
+
 }
 
-void CMainDlg::OnBnClickedSmoothOperatorFilterButton()
+void CMainDlg::OnBnClickedAverageFilterButton()
 {
-	filterType = SMOOTH_OPERATOR_FILTER;
+	filterType = AVERAGE_FILTER;
+	m_cutoffFilterFreqSlider.EnableWindow(FALSE);
+
 }
 
 void CMainDlg::OnBnClickedCuriousFilterButton()
 {
 	filterType = CURIOUS_FILTER;
+	m_cutoffFilterFreqSlider.EnableWindow(FALSE);
+
 }
 
 
@@ -405,6 +417,7 @@ void CMainDlg::OnEnChangeWavFileEdit()
 	m_loadWavFileButton.EnableWindow(TRUE);
 	m_clearWavFileButton.EnableWindow(TRUE);
 }
+
 
 
 UINT CMainDlg::run(LPVOID p)
@@ -754,6 +767,10 @@ int CMainDlg::loadSignal(int SoundCardChannelCount,
 
 	TRACE("loadSignal leftChannelBuffer=%x ,rightChannelBuffer=%x\n", leftBufferPtr, rightBufferPtr);
 	
+
+	float freq = (float)cutoffFrequency / 35000.0f;
+
+	setCutoffFrequency(freq);
 
 
 	for (i = 0; i < totNumberOfBuffers; i += 1)

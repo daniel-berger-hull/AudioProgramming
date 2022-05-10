@@ -183,7 +183,9 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AverageFilter.h" />
     <ClInclude Include="CMainDlg.h" />
+    <ClInclude Include="ConvolutionFilter.h" />
     <ClInclude Include="CSpectrumGraphCtrl.h" />
     <ClInclude Include="fft-real-pair.h" />
     <ClInclude Include="Fourier.h" />
@@ -197,7 +199,9 @@
     <ClInclude Include="WASAPIRenderer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AverageFilter.cpp" />
     <ClCompile Include="CMainDlg.cpp" />
+    <ClCompile Include="ConvolutionFilter.cpp" />
     <ClCompile Include="CSpectrumGraphCtrl.cpp" />
     <ClCompile Include="fft-real-pair.cpp" />
     <ClCompile Include="Fourier.cpp" />
@@ -226,6 +230,9 @@
     <Image Include="res\sinewave.bmp" />
     <Image Include="res\squarewave.bmp" />
     <Image Include="res\trianglewave.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ToDo.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

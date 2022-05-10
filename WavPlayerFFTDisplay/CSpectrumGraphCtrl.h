@@ -39,18 +39,23 @@ public:
 	
 	BYTE* getRawDataBufferPtr()		{ return rawDataBufferPtr; }
 
-//	void loadData();
 
 	
 protected:
 
 	int graphBarCount = DEFAULT_GRAPH_BAR_COUNT;
-	//double* m_dArray = nullptr;
+
 
 	/// FFT Related arrays...
 	double* inputreal = NULL;
 	double* inputimag = NULL;
 	double* outputMag = NULL;
+
+	// Adding all the magnitudes of each frequency bins produced by the FFT
+	double* magnitudesBuffer = NULL;
+
+	
+
 
 	// This buffer is used by the WASAPI to make copy of its data 
 	// it currenlty sending to the sound card, and is going to be used
@@ -65,6 +70,8 @@ protected:
 	void    cloneSignalData();
 	double* zero_reals(double* targetBuffer, int n);
 	void    performFFT();
+	void    magnitudeSummmation(double* dataBuffer,int size);
+	
 
 
 

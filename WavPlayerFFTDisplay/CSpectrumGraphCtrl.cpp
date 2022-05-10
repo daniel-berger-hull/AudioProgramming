@@ -40,9 +40,18 @@ CSpectrumGraphCtrl ::CSpectrumGraphCtrl()
 
 CSpectrumGraphCtrl::~CSpectrumGraphCtrl()
 {
+
+	TRACE("MAGNITUDE SOMMATION:\n");
+	for (int i = 0; i < SIG_LENGTH; i++)
+		TRACE("%i = %f\n", i, magnitudesBuffer[i]);
+
+
 	if (inputreal != NULL)  delete inputreal;
 	if (inputimag != NULL)  delete inputimag;
 	if (outputMag != NULL)  delete outputMag;
+
+	if (magnitudesBuffer != NULL)  delete magnitudesBuffer;
+
 
 	if (rawDataBufferPtr != NULL)  delete rawDataBufferPtr;
 	
@@ -67,10 +76,12 @@ void CSpectrumGraphCtrl::PreSubclassWindow()
 
 	//Make sure that there are at least some data, otherwise the OnPaint will crash
 
-	inputreal = (double*)malloc(SIG_LENGTH * sizeof(double));
-	inputimag = (double*)malloc(SIG_LENGTH * sizeof(double));
-	outputMag = (double*)malloc(SIG_LENGTH * sizeof(double));
+	inputreal        = (double*)malloc(SIG_LENGTH * sizeof(double));
+	inputimag        = (double*)malloc(SIG_LENGTH * sizeof(double));
+	outputMag        = (double*)malloc(SIG_LENGTH * sizeof(double));
+	magnitudesBuffer = (double*)malloc(SIG_LENGTH * sizeof(double));
 
+	
 	// The data is stereo, so there 4 + 4 bytes for each samples copied
 	rawDataBufferPtr = (BYTE*)malloc(SIG_LENGTH * 8);
 
@@ -78,6 +89,8 @@ void CSpectrumGraphCtrl::PreSubclassWindow()
 	inputreal = zero_reals(inputreal, SIG_LENGTH);
 	inputimag = zero_reals(inputimag, SIG_LENGTH);
 	outputMag = zero_reals(outputMag, SIG_LENGTH);
+	magnitudesBuffer = zero_reals(magnitudesBuffer, SIG_LENGTH);
+
 
 	for (int i = 0; i < SIG_LENGTH * 8; i++)
 		rawDataBufferPtr[i] = 0;
@@ -103,6 +116,8 @@ void CSpectrumGraphCtrl::OnPaint()
 
 //////////////////////////////////////////////////////////////////////////////////////////// 
 //					CSpectrumGraphCtrl Utility Functions
+
+
 
 
 void CSpectrumGraphCtrl::drawGraph(CPaintDC* dc, CRect* controlRect)
@@ -304,12 +319,35 @@ double* CSpectrumGraphCtrl::zero_reals(double* targetBuffer, int n)
 }
 
 
+
+void CSpectrumGraphCtrl::magnitudeSummmation(double* dataBuffer, int size)
+{
+
+	for (int i = 0; i < size; i++)  
+		magnitudesBuffer[i] += dataBuffer[i];
+
+}
+
+
+
+
 void CSpectrumGraphCtrl::performFFT()
 {
 	
 	Fft_transform(inputreal, inputimag, SIG_LENGTH);
 	// Get the power of the frequencies distribution, to view it in a graps
 	get_output_mag(inputreal, inputimag, outputMag, SIG_LENGTH);
+
+
+	//Faculative: Add all the magnitude accross all the frequency bins 
+	// produced by the FFT. The reason is that we can see a dynamic view
+	// of all the frequencies as we go. But we have no idea of the general trend
+	// For instance, when analysing a filter, having a view when the frequencies are
+	// cut (i.e the summation here will be much lower), this can help a lot 
+	magnitudeSummmation(outputMag, SIG_LENGTH);
+
+
+
 }
 
 

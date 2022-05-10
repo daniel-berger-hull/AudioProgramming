@@ -268,8 +268,8 @@ void get_output_mag(double* realArray, double* imgArray, double* sig_dest_mag_ar
 	for (k = 0; k < size / 2; k++)
 	{
 		sig_dest_mag_arr[k] = sqrt(pow(realArray[k], 2) + pow(imgArray[k], 2));
-		/*if (firstTime)
-			TRACE("%f\n", sig_dest_mag_arr[k]);*/
+		if (firstTime)
+			TRACE("%f\n", sig_dest_mag_arr[k]);
 	}
 
 

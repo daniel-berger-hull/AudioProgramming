@@ -12,6 +12,8 @@
 #include "pch.h"
 #include "framework.h"
 
+#include "AverageFilter.h"
+#include "ConvolutionFilter.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -27,9 +29,10 @@ template<typename T> T Convert(double Value);
 
 #define NO_FILTER							 0
 #define SIMPLE_FILTER						 1
-#define RUNNING_AVERAGE_FILTER				 2
-#define SMOOTH_OPERATOR_FILTER				 3
+#define AVERAGE_FILTER                       2
+#define CONVOLUTION_LOW_PASS_FILTER			 3
 #define CURIOUS_FILTER                       4
+
 
 #define MONO_CHANNEL                         1
 #define STEREO_CHANNEL                       2
@@ -125,67 +128,6 @@ public:
 
 
 
-
-class AverageFilter
-{
-public:
-    AverageFilter()
-    {
-        previousValues = new float[averageSize];
-        resetValues();
-    }
-
-    AverageFilter(int size)
-    {
-        if (size > 1 && size < 500)
-            averageSize = size;
-        else
-            averageSize = 3;
-
-        previousValues = new float[averageSize];
-
-        resetValues();
-    }
-
-    ~AverageFilter()
-    {
-        if (previousValues != nullptr)  delete previousValues;
-    }
-
-
-    int getAverageSize() { return averageSize; }
-
-    float filter(float currentValue)
-    {
-        float sum = 0.0f;
-        float result = 0.0f;
-
-        // Move the previous values down, and  will place the latest values (currentValue)
-        // at the end of the array previousValues;
-        for (int i = 0; i < averageSize - 1; i++)
-            previousValues[i] = previousValues[i + 1];
-
-        previousValues[averageSize - 1] = currentValue;
-
-        for (int i = 0; i < averageSize; i++)
-            sum += previousValues[i];
-
-        result = sum / (float)averageSize;
-
-        return result;
-    }
-
-private:
-    float* previousValues = nullptr;
-    int averageSize = 1;
-
-    void resetValues()
-    {
-        for (int i = 0; i < averageSize; i++)   previousValues[i] = 0.0f;
-    }
-};
-
-
 struct  GenParams
 {
     float      masterVolume;
@@ -205,10 +147,14 @@ struct  GenParams
 };
 
 
-AverageFilter averageFilter = AverageFilter(10);
+AverageFilter     averageFilter     = AverageFilter(10);
+ConvolutionFilter convolutionFilter = ConvolutionFilter(50, 20);
 
 
-
+void setCutoffFrequency(float cutoffFrequency)
+{
+    convolutionFilter.setKernel(cutoffFrequency);
+}
 //
 //  Load samples from a pre-existing signal array and apply the filtering if required
 // 
@@ -266,8 +212,6 @@ void LoadWavSamples(GenParams* params)
      
 
      LowPass<2> lp(params->cutoffFrequency, 44100, true);
-
-
 
 
     for (size_t i = 0; i < params->BufferLength / sizeof(T); i += params->SoundCardChannelCount)
@@ -329,23 +273,46 @@ void LoadWavSamples(GenParams* params)
               }*/
 
         }
-        else if (params->filteringType == RUNNING_AVERAGE_FILTER)
+        else if (params->filteringType == AVERAGE_FILTER)
+          {
+
+              if (params->WavFileChannelCount == MONO_CHANNEL)
+              {
+
+                  float currentVal = amplitude * ((float)*params->leftChannelBuffer / 32767.0f);
+                  float filtered = averageFilter.filter(currentVal);
+                  
+                  dataBuffer[i] = Convert<T>(filtered);
+                  dataBuffer[i + 1] = Convert<T>(filtered);
+
+                  params->leftChannelBuffer++;
+              }
+              else if (params->WavFileChannelCount == STEREO_CHANNEL)
+              {
+                  float currentVal = amplitude * ((float)*params->leftChannelBuffer / 32767.0f);
+                  float filtered = averageFilter.filter(currentVal);
+                  
+                  dataBuffer[i] = Convert<T>(filtered);
+                  dataBuffer[i + 1] = Convert<T>(filtered);
+
+                  params->leftChannelBuffer++;
+                  params->rightChannelBuffer++;
+              }
+          }
+
+
+          
+
+
+        else if (params->filteringType == CONVOLUTION_LOW_PASS_FILTER)
           {
          
 
-            ////////////////////////////////////////////////////////////////////////
                   if (params->WavFileChannelCount == MONO_CHANNEL)
                   {
 
                       float currentVal = amplitude * ((float)*params->leftChannelBuffer / 32767.0f);
-                      float filtered = averageFilter.filter(currentVal);
-
-
-
-                      //channelValues[LEFT_CHANNEL] = amplitude * ((float)*params->leftChannelBuffer / 32767.0f);
-                      //dataBuffer[i] = Convert<T>(channelValues[LEFT_CHANNEL]);
-                      //dataBuffer[i + 1] = Convert<T>(channelValues[LEFT_CHANNEL]);
-
+                      float filtered = convolutionFilter.filter(currentVal);
 
                       dataBuffer[i] = Convert<T>(filtered);
                       dataBuffer[i + 1] = Convert<T>(filtered);
@@ -356,24 +323,13 @@ void LoadWavSamples(GenParams* params)
                   else if (params->WavFileChannelCount == STEREO_CHANNEL)
                   {
                       float currentVal = amplitude * ((float)*params->leftChannelBuffer / 32767.0f);
-                      float filtered = averageFilter.filter(currentVal);
+                      float filtered = convolutionFilter.filter(currentVal);
+
                       dataBuffer[i] = Convert<T>(filtered);
                       dataBuffer[i + 1] = Convert<T>(filtered);
-                      
-                      //channelValues[LEFT_CHANNEL] = amplitude * ((float)*params->leftChannelBuffer / 32767.0f);
-                      //dataBuffer[i] = Convert<T>(channelValues[LEFT_CHANNEL]);
-                      //channelValues[RIGHT_CHANNEL] = amplitude * ((float)*params->rightChannelBuffer / 32767.0f);
-                      //dataBuffer[i + 1] = Convert<T>(channelValues[RIGHT_CHANNEL]);
                       params->leftChannelBuffer++;
                       params->rightChannelBuffer++;
                   }
-
-
-                  //////////////////////////////////////////////////////////////////////////////
-
-
-
-
               
           }
         else

@@ -82,6 +82,7 @@ protected:
 
 	CString m_wavFileNameValue;
 
+	
 
 	int m_signalType;
 
@@ -187,12 +188,9 @@ public:
 
 	afx_msg void OnBnClickedNoFilterButton();
 	afx_msg void OnBnClickedSimpleFilterButton();
-	afx_msg void OnBnClickedRunningAverageFilterButton();
-	afx_msg void OnBnClickedSmoothOperatorFilterButton();
+	afx_msg void OnBnClickedConvolutionLowPassFilterButton();
+	afx_msg void OnBnClickedAverageFilterButton();
 	afx_msg void OnBnClickedCuriousFilterButton();
 	afx_msg void OnEnChangeWavFileEdit();
-
-
-	//afx_msg void OnBnClickedTestAverageButton();
 
 };

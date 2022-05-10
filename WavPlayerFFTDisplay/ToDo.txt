@@ -12,11 +12,11 @@ B) Have a better evaluation of the real cutoff frequency of the Windowed-Sinc in
    But I would need a better evaluation of where exactly the frequencies are starting to be cut of by the filter.
 
 1 -  Validate if the tone.h is producing the exact frequency
+ *** Ok May 2, 2022 --> Compared with signal generator on web and RenderSharedMFC give the right freq ***
 
    for instance, if it produce a 440Hz sine wave, is it the case?
     You  may use first the project RenderSharedMFC, as it already have a sine wave signal in the GUI.
     
-
 
 2 - Implement a mouse over for the CSpectrumGraphCtrl
 
