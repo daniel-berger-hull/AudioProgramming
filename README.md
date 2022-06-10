@@ -1,3 +1,10 @@
+June 2022
+---------
+
+  Note that the framework to be used for the next projects will be wxWidgets, as there is still support for this library
+  (unlike Microsoft Win32 and MFC as the community has shifted to the C# development in the last decade)
+  
+
 # AudioProgramming
 ==================
 
@@ -41,7 +48,10 @@ The CaptureAudioFFT project been helping acheiving this task (but this project i
 CaptureAudioFFT is about recording).
 
 
+RenderSharedWxWidgets
+---------------------
 
+This is a remake of the RenderSharedWin32GDI and RenderSharedMFC using the graphic library wxWidgets instead of Win32/MFC.
 
 
 CaptureAudioFFT
