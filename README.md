@@ -8,7 +8,7 @@ June 2022
 # AudioProgramming
 ==================
 
-Collection of audio and tone generation projects in C++ running on Windows
+Collection of audio and tone generation projects in C++ running on Windows and built using Microsoft Visual Studio 2019 (Community edition)
 
 
 
