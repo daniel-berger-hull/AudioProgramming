@@ -1025,7 +1025,6 @@ bool CMainDlg::playTone(int freq, int durationInSec)
 	pParamObject = new CThreadParamObject(freq, durationInSec);
 	AfxBeginThread(run, this);
 
-
 	return true;
 }
 

@@ -145,7 +145,7 @@ protected:
 	void decorateRadioButtonSection();
 	void setupSliders();
 	void updateSliders();
-
+	 
 	void EnableHarmonicLevels(BOOL bEnable);
 	void EnableNoiseTypeSection(BOOL bEnable);
 
@@ -199,6 +199,8 @@ protected:
 	int  result = 0;
 
 	wchar_t* OutputEndpoint;
+
+
 
 	////////////////////////////////////////////////////////////////////  
 
